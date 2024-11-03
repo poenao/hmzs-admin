@@ -19,6 +19,7 @@ const routes = computed(() => {
     <div class="logo"></div>
     <el-scrollbar>
       <el-menu :default-active="defaultActive" router style="border: none">
+        <!-- 菜单中的每一项 -->
         <SliderBarItem
           v-for="route in routes"
           :key="route.path"
