@@ -2,15 +2,29 @@
 import router from "@/router";
 import { useUserStore } from "@/stores/user";
 import { removeLocalToken } from "@/utils/auth";
+import { ElMessageBox } from "element-plus";
 
 const logout = () => {
-  // 删除本地token
-  removeLocalToken();
-  // 清空store中的token
-  const stroe = useUserStore();
-  stroe.setToken("");
-  // 跳转到登录页
-  router.push("/login");
+  // 退出提示
+  ElMessageBox.confirm("确定要退出登录吗？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      // 确认退出
+      // 删除本地token
+      removeLocalToken();
+      // 清空store中的token
+      const stroe = useUserStore();
+      stroe.setToken("");
+      // 跳转到登录页
+      router.push("/login");
+    })
+    .catch(() => {
+      // 取消退出
+      ElMessageBox.close();
+    });
 };
 
 // 打开GitHub项目地址
