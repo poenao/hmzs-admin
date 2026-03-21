@@ -1,3 +1,4 @@
+import { useUserStore } from "@/stores/user";
 import axios, { type Method, type AxiosRequestConfig } from "axios";
 
 // 1. 定义后端返回的标准格式
@@ -8,7 +9,7 @@ export type Data<T> = {
 };
 
 const service = axios.create({
-  baseURL: "https://api-hmzs.itheima.net/api",
+  baseURL: "https://api-hmzs.itheima.net/tj",
   timeout: 5000,
 });
 
@@ -16,6 +17,12 @@ const service = axios.create({
 service.interceptors.request.use(
   (config) => {
     // 这里可以统一加 token
+    // 如果有token，可以在这里添加到请求头
+    const stroe = useUserStore();
+    const token = stroe.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error),

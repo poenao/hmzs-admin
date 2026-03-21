@@ -1,4 +1,24 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import router from "@/router";
+import { useUserStore } from "@/stores/user";
+import { removeLocalToken } from "@/utils/auth";
+
+const logout = () => {
+  // 删除本地token
+  removeLocalToken();
+  // 清空store中的token
+  const stroe = useUserStore();
+  stroe.setToken("");
+  // 跳转到登录页
+  router.push("/login");
+};
+
+// 打开GitHub项目地址
+const openGithub = () => {
+  // 使用 window.open 打开新标签页
+  window.open("https://github.com/poenao/hmzs-admin", "_blank");
+};
+</script>
 
 <template>
   <div class="nav-bar">
@@ -10,8 +30,8 @@
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item>首页</el-dropdown-item>
-          <el-dropdown-item>项目地址</el-dropdown-item>
-          <el-dropdown-item>退出登录</el-dropdown-item>
+          <el-dropdown-item @click="openGithub()">项目地址</el-dropdown-item>
+          <el-dropdown-item @click="logout()">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
