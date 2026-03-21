@@ -1,5 +1,6 @@
 import { useUserStore } from "@/stores/user";
 import axios, { type Method, type AxiosRequestConfig } from "axios";
+import { ElMessage } from "element-plus";
 
 // 1. 定义后端返回的标准格式
 export type Data<T> = {
@@ -25,7 +26,12 @@ service.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error),
+  //1. 接口报错的时候提示用户到底是哪里错误
+  //2. 接口数量很多 统一管控  不管哪个接口报错了 都能监控到 而且给出提示
+  (error) => {
+    ElMessage.error(error.response.data.msg);
+    return Promise.reject(error);
+  },
 );
 
 // 响应拦截器
@@ -34,7 +40,10 @@ service.interceptors.response.use(
     // 这里的 response.data 对应的是 Data<T> 结构
     return response.data;
   },
-  (error) => Promise.reject(error),
+  (error) => {
+    ElMessage.error(error.response.data.msg);
+    return Promise.reject(error);
+  },
 );
 
 /**
