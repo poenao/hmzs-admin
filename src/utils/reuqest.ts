@@ -1,3 +1,4 @@
+import router from "@/router";
 import { useUserStore } from "@/stores/user";
 import axios, { type Method, type AxiosRequestConfig } from "axios";
 import { ElMessage } from "element-plus";
@@ -42,6 +43,16 @@ service.interceptors.response.use(
   },
   (error) => {
     ElMessage.error(error.response.data.msg);
+    // 这里可以统一处理错误，比如 token 过期，直接跳转到登录页
+    if (error.response.data.code === 401) {
+      // 处理 token 过期的逻辑
+      const stroe = useUserStore();
+      // 清除用户信息
+      stroe.clearUserInfo();
+      // 跳转到登录页
+      router.push("/login");
+    }
+
     return Promise.reject(error);
   },
 );

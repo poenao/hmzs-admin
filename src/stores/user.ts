@@ -11,9 +11,17 @@ export const useUserStore = defineStore("hm-user", () => {
     // 存储token到本地
     setLocalToken(t);
   };
+  // 3. 定义一个清除用户信息的方法
+  const clearUserInfo = () => {
+    // 清除token
+    token.value = "";
+    // 清除本地存储的token
+    setLocalToken("");
+  };
 
   return {
     token,
     setToken,
+    clearUserInfo,
   };
 });
