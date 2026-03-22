@@ -43,7 +43,7 @@ export interface Card {
   /**
    * 月卡状态 0可用，1已过期
    */
-  cardStatus: number
+  cardStatus: string
   /**
    * 车牌号
    */

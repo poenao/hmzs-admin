@@ -29,6 +29,8 @@
           align="center"
           label="剩余有效天数"
           prop="totalEffectiveDate"
+          :formatter="formatStatus"
+        />
         />
         <el-table-column label="操作" align="center" fixed="right" width="300">
           <template #default="scope">
@@ -49,7 +51,7 @@
 
 <script lang="ts" setup>
 import { getCardListApi } from '@/apis/card'
-import type { ApifoxModel, Card, CardListData } from '@/types/card'
+import type { ApifoxModel, Card } from '@/types/card'
 import { ref } from 'vue'
 
 // 请求列表数据
@@ -69,6 +71,10 @@ const getCardList = async () => {
   const res = await getCardListApi(parmas.value)
   cardList.value = res.data.rows
   total.value = res.data.total
+}
+//适配状态显示
+const formatStatus = (row: Card) => {
+  return row.cardStatus === '0' ? '可用' : '已过期'
 }
 getCardList()
 </script>
