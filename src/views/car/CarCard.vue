@@ -3,9 +3,19 @@
     <!-- 搜索区域 -->
     <div class="search-container">
       <span class="search-label">车牌号码：</span>
-      <el-input clearable placeholder="请输入内容" class="search-main" />
+      <el-input
+        clearable
+        placeholder="请输入内容"
+        class="search-main"
+        v-model="params.carNumber"
+      />
       <span class="search-label">车主姓名：</span>
-      <el-input clearable placeholder="请输入内容" class="search-main" />
+      <el-input
+        clearable
+        placeholder="请输入内容"
+        class="search-main"
+        v-model="params.personName"
+      />
       <span class="search-label">状态：</span>
       <el-select style="width: 240px">
         <el-option label="全部" value="1" />
@@ -44,7 +54,13 @@
     </div>
     <!-- 分页 -->
     <div class="page-container">
-      <el-pagination layout="total, prev, pager, next" :total="0" />
+      <el-pagination
+        layout="total,sizes, prev, pager, next,jumper"
+        :total="total"
+        :page-sizes="[2, 5, 10, 15]"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
     </div>
   </div>
 </template>
@@ -55,7 +71,7 @@ import type { ApifoxModel, Card } from '@/types/card'
 import { ref } from 'vue'
 
 // 请求列表数据
-const parmas = ref<ApifoxModel>({
+const params = ref<ApifoxModel>({
   cardStatus: '', // 状态 '0':可用，'1':已过期
   carNumber: '', // 车牌号
   page: '1', // 页数
@@ -68,7 +84,7 @@ const cardList = ref<Card[]>([])
 const total = ref(0)
 // 获取列表数据
 const getCardList = async () => {
-  const res = await getCardListApi(parmas.value)
+  const res = await getCardListApi(params.value)
   cardList.value = res.data.rows
   total.value = res.data.total
 }
@@ -76,6 +92,21 @@ const getCardList = async () => {
 const formatStatus = (row: Card) => {
   return row.cardStatus === '0' ? '可用' : '已过期'
 }
+//监听每页条数变化，触发 handleSizeChange 方法。
+const handleSizeChange = (val: number) => {
+  // 更新每页条数参数
+  params.value.pageSize = val.toString()
+  // 重新获取列表数据
+  getCardList()
+}
+// 监听当前页码变化，触发 handleCurrentChange 方法。
+const handleCurrentChange = (val: number) => {
+  // 把点击的页数赋值给请求参数页数
+  params.value.page = val.toString()
+  // 重新获取列表数据
+  getCardList()
+}
+
 getCardList()
 </script>
 
