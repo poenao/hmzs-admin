@@ -17,10 +17,17 @@
         v-model="params.personName"
       />
       <span class="search-label">状态：</span>
-      <el-select style="width: 240px">
-        <el-option label="全部" value="1" />
+      <el-select v-model="params.cardStatus" style="width: 240px">
+        <el-option
+          :label="item.name"
+          v-for="item in cardStatusList"
+          :key="item.id"
+          :value="item.id!"
+        />
       </el-select>
-      <el-button type="primary" class="search-btn">查询</el-button>
+      <el-button type="primary" class="search-btn" @click="onSearch()"
+        >查询</el-button
+      >
     </div>
     <!-- 新增删除操作区域 -->
     <div class="create-container">
@@ -82,6 +89,20 @@ const params = ref<ApifoxModel>({
 const cardList = ref<Card[]>([])
 // 总条数
 const total = ref(0)
+const cardStatusList = [
+  {
+    id: -1,
+    name: '全部'
+  },
+  {
+    id: 0,
+    name: '可用'
+  },
+  {
+    id: 1,
+    name: '已过期'
+  }
+]
 // 获取列表数据
 const getCardList = async () => {
   const res = await getCardListApi(params.value)
@@ -106,7 +127,13 @@ const handleCurrentChange = (val: number) => {
   // 重新获取列表数据
   getCardList()
 }
-
+// 搜索请求
+const onSearch = () => {
+  // 点击搜索时，建议先回到第一页
+  params.value.page = '1'
+  // 调用接口获取数据
+  getCardList()
+}
 getCardList()
 </script>
 
