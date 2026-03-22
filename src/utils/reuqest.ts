@@ -45,10 +45,14 @@ service.interceptors.response.use(
     ElMessage.error(error.response.data.msg);
     // 这里可以统一处理错误，比如 token 过期，直接跳转到登录页
     if (error.response.data.code === 401) {
+      // 错误提示
+      ElMessage.error("登录已过期，请重新登录");
       // 处理 token 过期的逻辑
       const stroe = useUserStore();
       // 清除用户信息
       stroe.clearUserInfo();
+      // 保存当前路径到本地，用于登录后重定向
+      localStorage.setItem("redirectPath", router.currentRoute.value.fullPath);
       // 跳转到登录页
       router.push("/login");
     }

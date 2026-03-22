@@ -56,7 +56,12 @@ const handleLogin = () => {
       }
 
       ElMessage.success("登录成功 ✧(≖ ◡ ≖✿)");
-      router.push("/");
+      // 获取之前的重定向路径
+      const redirectPath = localStorage.getItem("redirectPath");
+      // 登录成功后清除重定向路径，避免下次登录时误用
+      localStorage.removeItem("redirectPath");
+      // 登录后重定向到之前页面或首页
+      router.push(redirectPath || "/");
     }
   });
 };
