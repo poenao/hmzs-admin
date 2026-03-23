@@ -65,3 +65,41 @@ export interface Card {
    */
   totalEffectiveDate: number
 }
+
+/**
+ * empty object
+ */
+/**
+ * 数据
+ */
+export interface CardListData {
+  rows: Card[]
+  total: number
+}
+
+export interface Card {
+  carBrand: string
+  cardStatus: string
+  carNumber: string
+  id: number
+  personName: string
+  phoneNumber: string // 改为 string
+  totalEffectiveDate: number
+}
+
+export interface CardParams {
+  carBrand: string
+  cardEndDate: string
+  cardStartDate: string
+  carNumber: string
+  paymentAmount: string | number // 金额可能是数字
+  paymentMethod: PaymentMethod
+  personName: string
+  phoneNumber: string // 修复：改为 string，不要用枚举限制死
+}
+
+export enum PaymentMethod {
+  Alipay = 'Alipay',
+  Cash = 'Cash',
+  WeChat = 'WeChat'
+}

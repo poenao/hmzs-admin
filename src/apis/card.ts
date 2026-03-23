@@ -1,4 +1,4 @@
-import type { ApifoxModel, CardListData } from '@/types/card'
+import type { ApifoxModel, CardListData, CardParams } from '@/types/card'
 import { request } from '@/utils/reuqest'
 
 /**
@@ -9,4 +9,12 @@ import { request } from '@/utils/reuqest'
 export const getCardListApi = (params: ApifoxModel) => {
   // 假设后端响应格式为 { code, message, data: { rows: Rows[] } }
   return request<CardListData>('/parking/card/list', 'get', params)
+}
+
+/**
+ * 添加月卡信息
+ * @param data
+ */
+export const addCardApi = (data: CardParams) => {
+  return request('/parking/card', 'post', data)
 }
