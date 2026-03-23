@@ -1,10 +1,6 @@
-import {
-  createRouter,
-  createWebHistory,
-  type RouteRecordRaw,
-} from "vue-router";
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
-import MainLayout from "@/layouts/MainLayout.vue";
+import MainLayout from '@/layouts/MainLayout.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -126,11 +122,16 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   },
-  // 新增月卡管理页
+  // 新增月卡管理
   {
     path: '/cardAdd',
     component: () => import('@/views/car/CarAdd.vue'),
     meta: { hidden: true }
+  },
+  // 添加企业管理
+  {
+    path: '/exterpriseAdd',
+    component: () => import('@/views/park/AddEnterprise.vue')
   },
   {
     path: '/:pathMatch(.*)*',
@@ -142,7 +143,7 @@ export const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior: () => ({ top: 0 }),
-  routes,
-});
+  routes
+})
 
-export default router;
+export default router
