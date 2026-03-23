@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { getIndustryListAPI } from '@/apis/Enterprise'
+import type { Industry } from '@/types/enterprise'
+import { ref } from 'vue'
 
 const addForm = ref({
   name: '', // 企业名称
@@ -10,9 +12,15 @@ const addForm = ref({
   contactNumber: '', // 联系人电话
   businessLicenseUrl: '', // 营业执照url
   businessLicenseId: '' // 营业执照id
-}) 
+})
+const industryList = ref<Industry[]>([]) // 可选行业列表
+// 获取选行业
+const getIndustryList = async () => {
+  const res = await getIndustryListAPI()
+  industryList.value = res.data
+}
+getIndustryList()
 </script>
-
 
 <template>
   <div class="add-enterprise">
@@ -34,11 +42,14 @@ const addForm = ref({
               <el-input v-model="addForm.registeredAddress" />
             </el-form-item>
             <el-form-item label="所在行业">
-              <el-select v-model="addForm.industryCode" 
-              >
-               <el-option lab/>
-            
-            </el-select>
+              <el-select v-model="addForm.industryCode">
+                <el-option
+                  v-for="item in industryList"
+                  :key="item.industryCode"
+                  :value="item.industryCode"
+                  :label="item.industryName"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="企业联系人">
               <el-input v-model="addForm.contact" />
@@ -59,7 +70,6 @@ const addForm = ref({
     </footer>
   </div>
 </template>
-
 
 <style scoped lang="scss">
 .add-enterprise {
