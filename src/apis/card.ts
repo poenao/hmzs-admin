@@ -40,3 +40,19 @@ export const getCardDetailAPI = (id: string) => {
 export const updateCardApi = (data: CardParams & { id: number }) => {
   return request('/parking/card/edit', 'PUT', data)
 }
+/**
+ * 删除月卡
+ * @param {*} id
+ * @returns
+ */
+export const deleteCardApi = (id: string) => {
+  return request(`/parking/card/${id}`, 'DELETE')
+}
+/**
+ * 批量删除月卡
+ * @param {*} ids [1,2,3]
+ * @returns
+ */
+export const delAllCardAPI = (ids: number[])=> {
+  return request(`/parking/card/${ids.join(',')}`, 'DELETE')
+}

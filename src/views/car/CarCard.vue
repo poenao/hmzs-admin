@@ -34,11 +34,17 @@
       <el-button type="primary" @click="$router.push('/cardAdd')"
         >添加月卡</el-button
       >
-      <el-button>批量删除</el-button>
+      <el-button @click="delCartList">批量删除</el-button>
     </div>
     <!-- 表格区域 -->
     <div class="table">
-      <el-table style="width: 100%" :data="cardList">
+      <el-table
+        style="width: 100%"
+        :data="cardList"
+        @selection-change="handleSelectionChange"
+      >
+        <!-- 👇 新增这一行：添加多选勾选框 👇 -->
+        <el-table-column type="selection" width="55" align="center" />
         <el-table-column align="center" type="index" label="序号" width="100" />
         <el-table-column align="center" label="车主名称" prop="personName" />
         <el-table-column align="center" label="联系方式" prop="phoneNumber" />
@@ -65,7 +71,12 @@
               @click="$router.push(`/cardAdd?id=${scope.row.id}`)"
               >编辑</el-button
             >
-            <el-button size="small" type="text">删除</el-button>
+            <el-button
+              @click="deleteCard(scope.row.id)"
+              size="small"
+              type="text"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -84,8 +95,9 @@
 </template>
 
 <script lang="ts" setup>
-import { getCardListApi } from '@/apis/card'
+import { deleteCardApi, getCardListApi } from '@/apis/card'
 import type { ApifoxModel, Card } from '@/types/card'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, onMounted } from 'vue'
 
 // 请求列表数据
@@ -143,6 +155,68 @@ const onSearch = () => {
   getCardList()
 }
 
+//删除月卡
+const deleteCard = async (id: string) => {
+  // 这里可以调用删除接口，传入id参数
+  ElMessageBox.confirm('确定要删除吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        const res = await deleteCardApi(id)
+        if (res.code === 10000) {
+          ElMessage.success('删除成功')
+          getCardList() // 刷新列表
+        } else {
+          ElMessage.error(res.message || '删除失败')
+        }
+      } catch (error) {
+        ElMessage.error('删除失败')
+      }
+    })
+    .catch(() => {
+      // 用户取消删除
+    })
+}
+// 监听多选框变化
+const selectedCards = ref<Card[]>([]) // 存储选中的行数据
+const handleSelectionChange = (val: Card[]) => {
+  // 这里可以获取到选中的行数据，进行批量删除等操作
+  selectedCards.value = val
+}
+// 批量删除
+const delCartList = () => {
+  if (selectedCards.value.length === 0) {
+    // 没有选中任何行
+    ElMessage.warning('请至少选择一条数据进行删除')
+    return
+  }
+  // 将选中的行数据的id拼接成字符串，传给删除接口
+  const ids = selectedCards.value.map(card => card.id).join(',')
+  ElMessageBox.confirm('确定要批量删除吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        const res = await deleteCardApi(ids)
+        if (res.code === 10000) {
+          ElMessage.success('批量删除成功')
+          getCardList() // 刷新列表
+        } else {
+          ElMessage.error(res.message || '批量删除失败')
+        }
+      } catch (error) {
+        ElMessage.error('批量删除失败')
+      }
+    })
+    .catch(() => {
+      // 用户取消删除
+    })
+}
 // 页面加载时获取列表
 onMounted(() => {
   getCardList()

@@ -319,6 +319,7 @@ onMounted(() => {
     getCardDetail()
   }
 })
+// 删除月卡
 </script>
 
 <style scoped lang="scss">
