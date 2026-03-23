@@ -1,7 +1,10 @@
 <template>
   <div class="add-card">
     <header class="add-header">
-      <el-page-header content="增加月卡" @back="$router.back()" />
+      <el-page-header
+        :content="cardId ? '编辑月卡' : '增加月卡'"
+        @back="$router.back()"
+      />
     </header>
     <main class="add-main">
       <div class="form-container">
@@ -94,22 +97,44 @@
 </template>
 
 <script lang="ts" setup>
-import { addCardApi } from '@/apis/card'
+import { addCardApi, getCardDetailAPI, updateCardApi } from '@/apis/card'
 import router from '@/router'
-import type { PaymentMethod } from '@/types/card'
+import type { PaymentMethod, CardDetail } from '@/types/card'
 import { ElMessage } from 'element-plus'
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 
-// 1. 添加月卡
-// 车辆信息表单
-const formRef = ref() // 用于获取表单实例
-const carInfoForm = ref({
-  personName: '', // 车主姓名
-  phoneNumber: '', // 联系方式
-  carNumber: '', // 车牌号码
-  carBrand: '' // 车辆品牌
+// ========== 修复1：路由参数类型安全处理 ==========
+const route = useRoute()
+// 用computed确保拿到的是string类型的id，过滤空值/数组
+const cardId = computed(() => {
+  const id = route.query.id
+  return typeof id === 'string' ? id : undefined
 })
-// 车辆信息校验
+// 存储接口返回的必填id字段，编辑时必须传给后端
+const carInfoId = ref<number>()
+const rechargeId = ref<number>()
+
+// ========== 表单定义 ==========
+const formRef = ref()
+const feeFormRef = ref()
+
+// 车辆信息表单
+const carInfoForm = ref({
+  personName: '',
+  phoneNumber: '',
+  carNumber: '',
+  carBrand: ''
+})
+
+// 缴费信息表单
+const feeForm = ref({
+  payTime: [] as string[],
+  paymentAmount: '',
+  paymentMethod: ''
+})
+
+// ========== 校验规则 ==========
 const carInfoRules = ref({
   personName: [
     { required: true, message: '请输入车主姓名', trigger: 'blur' },
@@ -119,7 +144,6 @@ const carInfoRules = ref({
       message: '姓名长度应在 2 到 20 个字符之间',
       trigger: 'blur'
     },
-    // 如果你需要严格限制只能输入中文，可以解除下面这行的注释：
     {
       pattern: /^[\u4e00-\u9fa5]{2,10}$/,
       message: '请输入正确的中文姓名',
@@ -129,7 +153,7 @@ const carInfoRules = ref({
   phoneNumber: [
     { required: true, message: '请输入联系方式', trigger: 'blur' },
     {
-      pattern: /^1[3-9]\d{9}$/, // 匹配1开头的11位大陆手机号
+      pattern: /^1[3-9]\d{9}$/,
       message: '请输入正确的11位手机号码',
       trigger: 'blur'
     }
@@ -137,7 +161,6 @@ const carInfoRules = ref({
   carNumber: [
     { required: true, message: '请输入车牌号码', trigger: 'blur' },
     {
-      // 该正则同时兼容普通蓝牌（如 粤B12345）、新能源绿牌（如 粤BA12345）以及挂学警等特殊车牌
       pattern:
         /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-Z][A-HJ-NP-Z0-9]{4,5}[A-HJ-NP-Z0-9挂学警港澳]$/,
       message: '请输入规范的中国大陆车牌号码',
@@ -152,100 +175,157 @@ const carInfoRules = ref({
     }
   ]
 })
-// 最近一此缴费月卡信息表单
-const feeFormRef = ref()
-const feeForm = ref({
-  payTime: [] as string[], // 支付时间
-  paymentAmount: '', // 支付金额
-  paymentMethod: '' // 支付方式
-})
-// 缴费规则
+
 const feeFormRules = ref({
   payTime: [
+    { required: true, message: '请选择完整的有效日期', trigger: 'change' },
     {
-      required: true,
-      message: '请选择支付时间'
+      validator: (rule: any, value: string[], callback: any) => {
+        if (!value || value.length !== 2) {
+          callback(new Error('请选择开始和结束日期'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
     }
   ],
   paymentAmount: [
+    { required: true, message: '请输入支付金额', trigger: 'blur' },
     {
-      required: true,
-      message: '请输入支付金额',
+      pattern: /^\d+(\.\d{1,2})?$/,
+      message: '请输入正确的金额，最多两位小数',
       trigger: 'blur'
     }
   ],
   paymentMethod: [
-    {
-      required: true,
-      message: '请选择支付方式',
-      trigger: 'change'
-    }
+    { required: true, message: '请选择支付方式', trigger: 'change' }
   ]
 })
+
 // 支付方式列表
 const payMethodList = [
-  {
-    id: 'Alipay',
-    name: '支付宝'
-  },
-  {
-    id: 'WeChat',
-    name: '微信'
-  },
-  {
-    id: 'Cash',
-    name: '线下'
-  }
+  { id: 'Alipay', name: '支付宝' },
+  { id: 'WeChat', name: '微信' },
+  { id: 'Cash', name: '线下' }
 ]
-// 提交表单
+
+// ========== 核心修复2：提交表单，完全匹配接口文档 ==========
 const submitForm = async () => {
-  // 确保两个表单实例都已挂载
   if (!formRef.value || !feeFormRef.value) return
-  // 同时验证两个表单
+
   try {
-    // 使用 Promise.all 来同时验证两个表单
+    // 表单校验
     await Promise.all([formRef.value.validate(), feeFormRef.value.validate()])
-    // 如果验证通过，执行提交逻辑
-    console.log('车辆信息表单数据:', carInfoForm.value)
-    console.log('缴费信息表单数据:', feeForm.value)
-    // 这里可以调用API接口提交数据
-    // 1. 将 payTime 数组[开始日期, 结束日期] 解构为两个单独的变量
-    const payload = {
-      paymentAmount: feeForm.value.paymentAmount,
-      // 校验通过后一定有值，加类型断言告诉TS
-      paymentMethod: feeForm.value.paymentMethod as PaymentMethod,
-      personName: carInfoForm.value.personName,
-      phoneNumber: carInfoForm.value.phoneNumber,
-      carNumber: carInfoForm.value.carNumber,
-      carBrand: carInfoForm.value.carBrand,
+
+    // 通用参数构造，统一转成接口要求的类型
+    const baseParams = {
+      personName: carInfoForm.value.personName.trim(),
+      phoneNumber: carInfoForm.value.phoneNumber.trim(),
+      carNumber: carInfoForm.value.carNumber.trim().toUpperCase(),
+      carBrand: carInfoForm.value.carBrand.trim(),
       cardStartDate: feeForm.value.payTime[0],
-      cardEndDate: feeForm.value.payTime[1]
+      cardEndDate: feeForm.value.payTime[1],
+      paymentMethod: feeForm.value.paymentMethod as PaymentMethod,
+      paymentAmount: Number(feeForm.value.paymentAmount) // 统一转数字，匹配接口要求
     }
-    const res = await addCardApi(payload)
-    if (res.code === 10000) {
-      ElMessage.success('月卡添加成功')
-      // 可以选择跳转回之前列表页
-      router.back()
+
+    // ========== 修复3：正确判断编辑/新增逻辑 ==========
+    if (cardId.value) {
+      // 编辑模式：必须传入后端要求的必填字段
+      if (!carInfoId.value || !rechargeId.value) {
+        ElMessage.error('缺少车辆信息ID，无法编辑')
+        return
+      }
+
+      const editParams = {
+        ...baseParams,
+        // 接口要求的必填ID字段，必须传入
+        carInfoId: carInfoId.value,
+        rechargeId: rechargeId.value
+      }
+
+      console.log('编辑提交参数：', editParams)
+      const res = await updateCardApi(editParams as any )
+
+      if (res.code === 10000) {
+        ElMessage.success('月卡编辑成功')
+        router.back()
+      } else {
+        ElMessage.error(res.message || '月卡编辑失败')
+      }
     } else {
-      ElMessage.error(res.message || '月卡添加失败')
+      // 新增模式
+      console.log('新增提交参数：', baseParams)
+      const res = await addCardApi(baseParams as any)
+
+      if (res.code === 10000) {
+        ElMessage.success('月卡添加成功')
+        router.back()
+      } else {
+        ElMessage.error(res.message || '月卡添加失败')
+      }
     }
   } catch (error) {
-    // 只要有任意一个表单校验未通过，就会走到 catch 里
     console.warn('表单校验未通过，请检查红字提示', error)
-    // Element Plus 会自动在界面上标红提示错误信息，这里一般不需要额外处理
   }
 }
+
 // 重置表单
 const resetForm = () => {
-  if (formRef.value) formRef.value.resetFields()
-  if (feeFormRef.value) feeFormRef.value.resetFields()
+  formRef.value?.resetFields()
+  feeFormRef.value?.resetFields()
 }
+
+// ========== 核心修复4：详情回显，给必填ID赋值 ==========
+const getCardDetail = async () => {
+  if (!cardId.value) return
+
+  try {
+    const res = await getCardDetailAPI(cardId.value)
+    if (res.code === 10000) {
+      const data: CardDetail = res.data
+
+      // 车辆信息回显
+      carInfoForm.value = {
+        personName: data.personName,
+        phoneNumber: data.phoneNumber,
+        carNumber: data.carNumber,
+        carBrand: data.carBrand
+      }
+
+      // 缴费信息回显
+      feeForm.value = {
+        payTime: [data.cardStartDate, data.cardEndDate],
+        paymentAmount: data.paymentAmount.toString(),
+        paymentMethod: data.paymentMethod
+      }
+
+      // 【关键修复】给编辑必填的ID字段赋值，提交时必须传给后端
+      carInfoId.value = data.carInfoId
+      rechargeId.value = data.rechargeId
+    } else {
+      ElMessage.error(res.message || '获取月卡详情失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取月卡详情异常')
+    console.error('获取详情失败：', error)
+  }
+}
+
+// 页面加载时，有ID就获取详情
+onMounted(() => {
+  if (cardId.value) {
+    getCardDetail()
+  }
+})
 </script>
 
 <style scoped lang="scss">
 .add-card {
   background-color: #f4f6f8;
   height: 100vh;
+  padding-bottom: 80px;
 
   .add-header {
     display: flex;
@@ -253,20 +333,6 @@ const resetForm = () => {
     padding: 0 20px;
     height: 64px;
     background-color: #fff;
-
-    .left {
-      span {
-        margin-right: 4px;
-      }
-
-      .arrow {
-        cursor: pointer;
-      }
-    }
-
-    .right {
-      text-align: right;
-    }
   }
 
   .add-main {
@@ -275,11 +341,15 @@ const resetForm = () => {
 
     .form-container {
       background-color: #fff;
+      border-radius: 4px;
+      margin-bottom: 20px;
 
       .title {
         height: 60px;
         line-height: 60px;
         padding-left: 20px;
+        font-weight: bold;
+        border-bottom: 1px solid #f0f0f0;
       }
 
       .form {
@@ -296,23 +366,19 @@ const resetForm = () => {
         }
       }
     }
-
-    .preview {
-      img {
-        width: 100px;
-      }
-    }
   }
 
   .add-footer {
     position: fixed;
     bottom: 0;
+    left: 0;
     width: 100%;
     padding: 24px 50px;
     color: #000000d9;
     font-size: 14px;
     background: #fff;
     text-align: center;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
   }
 }
 </style>

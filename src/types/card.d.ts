@@ -24,6 +24,7 @@ export interface ApifoxModel {
    */
   personName?: string
 }
+
 /**
  * 数据
  */
@@ -66,40 +67,43 @@ export interface Card {
   totalEffectiveDate: number
 }
 
-/**
- * empty object
- */
-/**
- * 数据
- */
-export interface CardListData {
-  rows: Card[]
-  total: number
+// 支付方式枚举
+export enum PaymentMethod {
+  Alipay = 'Alipay',
+  Cash = 'Cash',
+  WeChat = 'WeChat'
 }
 
-export interface Card {
-  carBrand: string
-  cardStatus: string
-  carNumber: string
-  id: number
-  personName: string
-  phoneNumber: string // 改为 string
-  totalEffectiveDate: number
-}
-
+// 新增/编辑通用基础参数（完全对齐接口文档必填项）
 export interface CardParams {
   carBrand: string
   cardEndDate: string
   cardStartDate: string
   carNumber: string
-  paymentAmount: string | number // 金额可能是数字
-  paymentMethod: PaymentMethod
+  paymentAmount: number
+  paymentMethod: PaymentMethod | string
   personName: string
-  phoneNumber: string // 修复：改为 string，不要用枚举限制死
+  phoneNumber: string
+  carInfoId: number
+  rechargeId: number
 }
 
-export enum PaymentMethod {
-  Alipay = 'Alipay',
-  Cash = 'Cash',
-  WeChat = 'WeChat'
+// 编辑接口专属参数：基础参数 + 必须的id字段
+export interface UpdateCardParams extends CardParams {
+  id: number
+}
+
+// 月卡详情返回类型
+export interface CardDetail {
+  carBrand: string
+  cardEndDate: string
+  cardStartDate: string
+  carInfoId: number
+  carNumber: string
+  paymentAmount: number
+  paymentMethod: string
+  personName: string
+  phoneNumber: string
+  rechargeId: number
+  id: number
 }

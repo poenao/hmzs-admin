@@ -22,7 +22,7 @@
           :label="item.name"
           v-for="item in cardStatusList"
           :key="item.id"
-          :value="item.id!"
+          :value="item.id === -1 ? '' : String(item.id)"
         />
       </el-select>
       <el-button type="primary" class="search-btn" @click="onSearch()"
@@ -48,14 +48,23 @@
           align="center"
           label="剩余有效天数"
           prop="totalEffectiveDate"
-          :formatter="formatStatus"
         />
+        <el-table-column
+          align="center"
+          label="月卡状态"
+          prop="cardStatus"
+          :formatter="formatStatus"
         />
         <el-table-column label="操作" align="center" fixed="right" width="300">
           <template #default="scope">
             <el-button size="small" type="text">续费</el-button>
             <el-button size="small" type="text">查看</el-button>
-            <el-button size="small" type="text">编辑</el-button>
+            <el-button
+              size="small"
+              type="text"
+              @click="$router.push(`/cardAdd?id=${scope.row.id}`)"
+              >编辑</el-button
+            >
             <el-button size="small" type="text">删除</el-button>
           </template>
         </el-table-column>
@@ -77,7 +86,7 @@
 <script lang="ts" setup>
 import { getCardListApi } from '@/apis/card'
 import type { ApifoxModel, Card } from '@/types/card'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 // 请求列表数据
 const params = ref<ApifoxModel>({
@@ -108,35 +117,36 @@ const cardStatusList = [
 // 获取列表数据
 const getCardList = async () => {
   const res = await getCardListApi(params.value)
-  cardList.value = res.data.rows
-  total.value = res.data.total
+  if (res.code === 10000) {
+    cardList.value = res.data.rows
+    total.value = res.data.total
+  }
 }
-//适配状态显示
+// 适配状态显示
 const formatStatus = (row: Card) => {
   return row.cardStatus === '0' ? '可用' : '已过期'
 }
-//监听每页条数变化，触发 handleSizeChange 方法。
+// 监听每页条数变化
 const handleSizeChange = (val: number) => {
-  // 更新每页条数参数
   params.value.pageSize = val.toString()
-  // 重新获取列表数据
+  params.value.page = '1' // 切换条数时回到第一页
   getCardList()
 }
-// 监听当前页码变化，触发 handleCurrentChange 方法。
+// 监听当前页码变化
 const handleCurrentChange = (val: number) => {
-  // 把点击的页数赋值给请求参数页数
   params.value.page = val.toString()
-  // 重新获取列表数据
   getCardList()
 }
 // 搜索请求
 const onSearch = () => {
-  // 点击搜索时，建议先回到第一页
   params.value.page = '1'
-  // 调用接口获取数据
   getCardList()
 }
-getCardList()
+
+// 页面加载时获取列表
+onMounted(() => {
+  getCardList()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -151,9 +161,13 @@ getCardList()
   border-bottom: 1px solid rgb(237, 237, 237, 0.9);
   padding-bottom: 20px;
 
+  .search-label {
+    margin-right: 8px;
+  }
+
   .search-main {
     width: 220px;
-    margin-right: 10px;
+    margin-right: 20px;
   }
 
   .search-btn {
@@ -166,7 +180,7 @@ getCardList()
 }
 
 .page-container {
-  padding: 4px 0px;
+  padding: 20px 0px;
   text-align: right;
 }
 
