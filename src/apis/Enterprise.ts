@@ -3,7 +3,9 @@ import type {
   EnterprisePageData,
   Industry,
   EnterpriseParams,
-  EnterpriseDetail
+  EnterpriseDetail,
+  EnterpriseFile,
+  Rent
 } from '@/types/enterprise'
 import { request } from '@/utils/reuqest'
 import type { UploadUserFile } from 'element-plus'
@@ -27,10 +29,11 @@ export const getIndustryListAPI = () => {
 }
 /**
  * 上传合同
- * @returns
+ * @param data FormData格式的文件数据
+ * @returns 返回上传文件的id和url
  */
 export const uploadAPI = (data: FormData) => {
-  return request<UploadUserFile>('/upload', 'POST', data)
+  return request<EnterpriseFile>('/upload', 'POST', data)
 }
 
 /**
@@ -74,4 +77,21 @@ export const delEnterpriseAPI = (id: string) => {
  */
 export const deleteEnterpriseAPI = (id: string) => {
   return request(`/park/enterprise/${id}`, 'DELETE')
+}
+/**
+ * 获取空置中楼宇列表（未租赁）
+ * @param {*}
+ * @returns
+ */
+export const getRentBuildListAPI = () => {
+  return request<{ id: string; name: string }[]>('/park/rent/building')
+}
+
+/**
+ * 给当前企业添加合同
+ * @param {*} data
+ * @returns
+ */
+export const createRentAPI = (data: Rent) => {
+  return request('/park/enterprise/rent', 'POST', data)
 }

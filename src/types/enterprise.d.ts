@@ -136,3 +136,38 @@ export interface EnterpriseFile {
      */
     url: string;
 }
+
+/**
+ * 添加租赁合同信息
+ */
+export interface Rent {
+    /**
+     * 租赁楼宇id
+     */
+    buildingId: number;
+    /**
+     * 合同附件id
+     */
+    contractId: number;
+    /**
+     * 合同附件url
+     */
+    contractUrl: string;
+    /**
+     * 租赁结束日期
+     */
+    endTime: string;
+    /**
+     * 企业id
+     */
+    enterpriseId: number;
+    /**
+     * 开始日期
+     */
+    startTime: string;
+    /**
+     * 操作类型，添加合同0，续签合同1
+     */
+    type: number;
+
+}
