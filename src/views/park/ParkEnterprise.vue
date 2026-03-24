@@ -37,8 +37,8 @@
           <template #default="scope">
             <el-button link type="primary">添加合同</el-button>
             <el-button link type="primary">查看</el-button>
-            <el-button link type="primary">编辑</el-button>
-            <el-button link type="primary">删除</el-button>
+            <el-button link type="primary" @click="editEnterprise(scope.row.id)">编辑</el-button>
+            <el-button link type="primary" @click="deleteEnterprise(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -55,10 +55,14 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getEnterpriseInfoApi } from '@/apis/Enterprise'
+import { getEnterpriseInfoApi, deleteEnterpriseApi } from '@/apis/Enterprise'
 import type { EnterpriseItem, EnterpriseQueryParams } from '@/types/enterprise'
 import { ref } from 'vue'
-// 这里的 params 是为了后续接口调用准备的，目前还没有用到
+import { useRouter } from 'vue-router'
+import { ElMessageBox, ElMessage } from 'element-plus'
+
+const router = useRouter()
+// 这里的 params 
 const params = ref<EnterpriseQueryParams>({
   name: '', // 企业名称
   page: 1, // 当前页码
@@ -91,6 +95,38 @@ const doSearch = () => {
   getExterpriseList()
 }
 // 编辑企业
+const editEnterprise = (id: number) => {
+  router.push({
+    path: '/exterpriseAdd',
+    query: {
+      id
+    }
+  })
+}
+
+// 添加删除企业的函数
+const deleteEnterprise = (id: number) => {
+  // 弹出确认框
+  ElMessageBox.confirm(
+    '确认删除该企业吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(async () => {
+      // 调用删除企业的 API
+      await deleteEnterpriseApi(id);
+      // 重新获取企业列表
+      getExterpriseList();
+      ElMessage.success('删除成功');
+    })
+    .catch(() => {
+      ElMessage.info('已取消删除');
+    });
+};
 
 getExterpriseList()
 </script>

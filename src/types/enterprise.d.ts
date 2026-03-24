@@ -38,45 +38,89 @@ export interface Industry {
   industryName: string
 }
 
-
 /**
- * empty object
+ * 企业详情
  */
-export interface EnterpriseParams {
-    /**
-     * 上传文件id
-     */
-    businessLicenseId: string;
-    /**
-     * 上传文件rl
-     */
-    businessLicenseUrl: string;
-    /**
-     * 企业联系人
-     */
-    contact: string;
-    /**
-     * 企业联系方式
-     */
-    contactNumber: string;
-    /**
-     * 行业编号
-     */
-    industryCode: string;
-    /**
-     * 企业法人
-     */
-    legalPerson: string;
-    /**
-     * 企业名称
-     */
-    name: string;
-    /**
-     * 注册地址
-     */
-    registeredAddress: string;
+export interface EnterpriseDetail {
+  /**
+   * 企业id
+   */
+  id: string
+  /**
+   * 企业名称
+   */
+  name: string
+  /**
+   * 企业法人
+   */
+  legalPerson: string
+  /**
+   * 注册地址
+   */
+  registeredAddress: string
+  /**
+   * 行业编号
+   */
+  industryCode: string
+  /**
+   * 上传文件url
+   */
+  businessLicenseUrl: string
+  /**
+   * 上传文件id
+   */
+  businessLicenseId: string
+  /**
+   * 企业联系人
+   */
+  contact: string
+  /**
+   * 企业联系方式
+   */
+  contactNumber: string
 }
 
+/**
+ * 添加企业参数
+ */
+export interface EnterpriseParams {
+  /**
+   * 企业id（编辑时存在）
+   */
+  id?: string
+  /**
+   * 企业名称
+   */
+  name: string
+  /**
+   * 企业法人
+   */
+  legalPerson: string
+  /**
+   * 注册地址
+   */
+  registeredAddress: string
+  /**
+   * 行业编号
+   */
+  industryCode: string
+  /**
+   * 上传文件url
+   */
+  businessLicenseUrl: string
+  /**
+   * 上传文件id
+   */
+  businessLicenseId: string
+  /**
+   * 企业联系人
+   */
+  contact: string
+  /**
+   * 企业联系方式
+   */
+  contactNumber: string
+}
 
 export interface EnterpriseFile {
     /**

@@ -2,7 +2,8 @@ import type {
   EnterpriseQueryParams,
   EnterprisePageData,
   Industry,
-  EnterpriseParams
+  EnterpriseParams,
+  EnterpriseDetail
 } from '@/types/enterprise'
 import { request } from '@/utils/reuqest'
 import type { UploadUserFile } from 'element-plus'
@@ -38,5 +39,39 @@ export const uploadAPI = (data: FormData) => {
  * @returns
  */
 export const createEnterpriseAPI = (data: EnterpriseParams) => {
-  return request('/park/enterprise', 'POST', data)
+  return request<any>('/park/enterprise', 'POST', data)
+}
+
+/**
+ * 获取企业详情
+ * @param {*} id
+ * @returns
+ */
+export const getEnterpriseDetailAPI = (id: string) => {
+  return request<EnterpriseDetail>(`/park/enterprise/${id}`)
+}
+/**
+ * 编辑企业
+ * @param {*} data
+ * @returns
+ */
+export const updateEnterpriseAPI = (data: EnterpriseParams) => {
+  return request('/park/enterprise', 'PUT', data)
+}
+/**
+ * 删除企业
+ * @param {*} id
+ * @returns
+ */
+export const delEnterpriseAPI = (id: string) => {
+  return request(`/park/enterprise/${id}`, 'DELETE')
+}
+
+/**
+ * 删除企业
+ * @param id 企业ID
+ * @returns
+ */
+export const deleteEnterpriseAPI = (id: string) => {
+  return request(`/park/enterprise/${id}`, 'DELETE')
 }
