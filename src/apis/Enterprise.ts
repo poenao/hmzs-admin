@@ -1,9 +1,11 @@
 import type {
   EnterpriseQueryParams,
   EnterprisePageData,
-  Industry
+  Industry,
+  EnterpriseParams
 } from '@/types/enterprise'
 import { request } from '@/utils/reuqest'
+import type { UploadUserFile } from 'element-plus'
 
 /**
  *获取企业数据
@@ -21,4 +23,20 @@ export const getEnterpriseInfoApi = (params: EnterpriseQueryParams) => {
  */
 export const getIndustryListAPI = () => {
   return request<Industry[]>('/park/industry')
+}
+/**
+ * 上传合同
+ * @returns
+ */
+export const uploadAPI = (data: FormData) => {
+  return request<UploadUserFile>('/upload', 'POST', data)
+}
+
+/**
+ * 创建公司
+ * @param {*} data
+ * @returns
+ */
+export const createEnterpriseAPI = (data: EnterpriseParams) => {
+  return request('/park/enterprise', 'POST', data)
 }

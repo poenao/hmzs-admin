@@ -11,55 +11,55 @@ export type Data<T> = {
 };
 
 const service = axios.create({
-  baseURL: "https://api-hmzs.itheima.net/tj",
-  timeout: 5000,
-});
+  baseURL: 'https://api-hmzs.itheima.net/tj',
+  timeout: 5000
+})
 
 // 请求拦截器
 service.interceptors.request.use(
-  (config) => {
+  config => {
     // 这里可以统一加 token
     // 如果有token，可以在这里添加到请求头
-    const stroe = useUserStore();
-    const token = stroe.token;
+    const stroe = useUserStore()
+    const token = stroe.token
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`
     }
-    return config;
+    return config
   },
   //1. 接口报错的时候提示用户到底是哪里错误
   //2. 接口数量很多 统一管控  不管哪个接口报错了 都能监控到 而且给出提示
-  (error) => {
-    ElMessage.error(error.response.data.msg);
-    return Promise.reject(error);
-  },
-);
+  error => {
+    ElMessage.error(error.response?.data?.msg || error.message || '请求失败')
+    return Promise.reject(error)
+  }
+)
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response) => {
+  response => {
     // 这里的 response.data 对应的是 Data<T> 结构
-    return response.data;
+    return response.data
   },
-  (error) => {
-    ElMessage.error(error.response.data.msg);
+  error => {
+    ElMessage.error(error.response?.data?.msg || error.message || '请求失败')
     // 这里可以统一处理错误，比如 token 过期，直接跳转到登录页
-    if (error.response.data.code === 401) {
+    if (error.response?.data?.code === 401) {
       // 错误提示
-      ElMessage.error("登录已过期，请重新登录");
+      ElMessage.error('登录已过期，请重新登录')
       // 处理 token 过期的逻辑
-      const stroe = useUserStore();
+      const stroe = useUserStore()
       // 清除用户信息
-      stroe.clearUserInfo();
+      stroe.clearUserInfo()
       // 保存当前路径到本地，用于登录后重定向
-      localStorage.setItem("redirectPath", router.currentRoute.value.fullPath);
+      localStorage.setItem('redirectPath', router.currentRoute.value.fullPath)
       // 跳转到登录页
-      router.push("/login");
+      router.push('/login')
     }
 
-    return Promise.reject(error);
-  },
-);
+    return Promise.reject(error)
+  }
+)
 
 /**
  * 4. 请求工具函数
