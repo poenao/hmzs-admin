@@ -83,4 +83,4 @@ const request = <T>(
   });
 };
 
-export { request };
+export { request, service }

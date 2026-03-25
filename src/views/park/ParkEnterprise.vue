@@ -23,7 +23,54 @@
     </div>
 
     <div class="table">
-      <el-table :data="exterpriseList" style="width: 100%">
+      <el-table
+        :data="exterpriseList"
+        @expand-change="handleExpandChange"
+        style="width: 100%"
+        row-key="id"
+        :expand-row-keys="expandRowKeys"
+      >
+        <el-table-column type="expand">
+          <template #default>
+            <el-table>
+              <el-table-column
+                label="租赁楼宇"
+                width="320"
+                prop="buildingName"
+              />
+              <el-table-column
+                align="center"
+                label="租赁起始时间"
+                prop="startTime"
+              />
+              <el-table-column align="center" label="合同状态" prop="status">
+                <template #default="scope">
+                  <el-tag :type="formatInfoType(scope.row.status)">
+                    {{ formatStatus(scope.row.status) }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="操作" width="180">
+                <template #default="scope">
+                  <el-button size="small" type="text">续租</el-button>
+                  <el-button
+                    size="small"
+                    type="text"
+                    :disabled="scope.row.status === 3"
+                    @click="terminateLease(scope.row.contractId)"
+                    >退租</el-button
+                  >
+                  <el-button
+                    size="small"
+                    type="text"
+                    :disabled="scope.row.status === 3"
+                    >删除</el-button
+                  >
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+        </el-table-column>
         <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column
           align="center"
@@ -38,7 +85,12 @@
             <el-button link type="primary" @click="addContract(scope.row.id)"
               >添加合同</el-button
             >
-            <el-button link type="primary">查看</el-button>
+            <el-button
+              link
+              type="primary"
+              @click="$router.push(`/exterpriseDetail?id=${scope.row.id}`)"
+              >查看</el-button
+            >
             <el-button link type="primary" @click="editEnterprise(scope.row.id)"
               >编辑</el-button
             >
@@ -67,11 +119,7 @@
     <el-dialog v-model="dialogVisible" title="添加合同" width="580px">
       <!-- 表单区域：建议 div 写成闭合标签，虽然在 vue 模板中单标签有时不报错，但双标签更规范 -->
       <div class="form-container">
-        <el-form
-          label-position="top"
-          :model="rentForm"
-          :rules="rentRules"
-        >
+        <el-form label-position="top" :model="rentForm" :rules="rentRules">
           <!-- 1. 租赁楼宇 -->
           <el-form-item label="租赁楼宇" prop="buildingId">
             <el-select
@@ -134,37 +182,68 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getEnterpriseInfoApi, deleteEnterpriseAPI, getRentBuildListAPI, uploadAPI } from '@/apis/Enterprise'
-import type { EnterpriseItem, EnterpriseQueryParams } from '@/types/enterprise'
+import {
+  getEnterpriseInfoApi,
+  deleteEnterpriseAPI,
+  getRentBuildListAPI,
+  uploadAPI,
+  getRentListAPI,
+  outRentAPI
+} from '@/apis/Enterprise'
+import type {
+  Datum,
+  EnterpriseItem,
+  EnterpriseQueryParams
+} from '@/types/enterprise'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage, type FormRules, type UploadFile } from 'element-plus'
+import {
+  ElMessageBox,
+  ElMessage,
+  type FormRules,
+  type UploadFile
+} from 'element-plus'
 
+// 定义组件内的状态和方法
 const router = useRouter()
+// 企业列表查询参数
 const params = ref<EnterpriseQueryParams>({
   name: '',
   page: 1,
   pageSize: 2
 })
+// 企业列表数据和总数
 const total = ref(0)
+// 企业列表数据
 const exterpriseList = ref<EnterpriseItem[]>([])
-
+//  获取企业下合同列表
+const rentList = ref<Datum[]>([])
+// 获取企业列表数据
 const getExterpriseList = async () => {
   const res = await getEnterpriseInfoApi(params.value)
-  exterpriseList.value = res.data.rows
+  // 企业详情数据顺便详情
+  exterpriseList.value = res.data.rows.map(item => {
+    return {
+      ...item,
+      rentList: [] // 每一行补充存放合同的列表
+    }
+  })
   total.value = res.data.total
 }
 
+// 分页变化的处理函数
 const pageChange = (val: number) => {
   params.value.page = val
   getExterpriseList()
 }
 
+// 搜索按钮的处理函数
 const doSearch = () => {
   params.value.page = 1
   getExterpriseList()
 }
 
+// 编辑企业的处理函数
 const editEnterprise = (id: number) => {
   router.push({
     path: '/exterpriseAdd',
@@ -172,6 +251,7 @@ const editEnterprise = (id: number) => {
   })
 }
 
+// 删除企业的处理函数
 const deleteEnterprise = (id: number) => {
   ElMessageBox.confirm('确认删除该企业吗？', '提示', {
     confirmButtonText: '确定',
@@ -188,9 +268,11 @@ const deleteEnterprise = (id: number) => {
     })
 }
 
+// 添加合同相关状态
 const buildingList = ref<{ id: string; name: string }[]>([])
 const dialogVisible = ref(false)
 
+// 获取楼宇列表数据
 const getBuildingList = async () => {
   try {
     const res = await getRentBuildListAPI()
@@ -200,6 +282,7 @@ const getBuildingList = async () => {
   }
 }
 
+// 1. 点击添加合同的处理逻辑
 const addContract = (enterpriseId: number) => {
   dialogVisible.value = true
   getBuildingList()
@@ -221,6 +304,7 @@ const resetRentForm = () => {
   }
 }
 
+// 定义租赁合同表单数据
 const rentForm = ref({
   buildingId: undefined as string | undefined,
   contractId: undefined as string | undefined,
@@ -302,7 +386,7 @@ const validateContractFile = (file: UploadFile) => {
 
   return { valid: true, message: '' }
 }
-
+// 处理文件移除
 const handleFileRemove = () => {
   rentForm.value.contractUrl = []
   rentForm.value.contractId = undefined
@@ -344,6 +428,74 @@ const handleConfirm = async () => {
   }
 }
 
+const expandRowKeys = ref<string[]>([])
+// 格式化 tag 类型
+const formatInfoType = (status: number) => {
+  switch (status) {
+    case 0:
+      return 'warning'
+    case 1:
+      return 'success'
+    case 2:
+      return 'info'
+    case 3:
+      return 'danger'
+  }
+}
+
+// 格式化 status
+const formatStatus = (type: number) => {
+  switch (type) {
+    case 0:
+      return '待生效'
+    case 1:
+      return '生效中'
+    case 2:
+      return '已到期'
+    case 3:
+      return '已退租'
+  }
+}
+
+// 处理展开行变化的函数
+const handleExpandChange = async (row: any, expandeRows: any[]) => {
+  //1.1 判断当前行是否已经展开过，如果已经展开过，就不再重复请求接口了
+  const isExpend = expandeRows.find(item => item.id === row.id)
+  //1.2
+  if (isExpend) {
+    // 因为展开/关闭都会触发此事件函数，做个判断只有展开时获取数据
+    const res = await getRentListAPI(row.id)
+    console.log(res)
+    row.rentList = res.data
+    // 1.3 展开时，把当前行的 id 添加到 expandRowKeys 中，保持展开状态
+    expandRowKeys.value.push(row.id)
+  } else {
+    // 关闭时，把当前行的合同列表清空，防止下次打开时不断 push 叠加
+    row.rentList = []
+    // 1.4 关闭时，把当前行的 id 从 expandRowKeys 中移除，保持关闭状态
+    expandRowKeys.value = expandRowKeys.value.filter(id => id !== row.id)
+  }
+}
+
+// 退租
+const terminateLease = (contractId: string) => {
+  ElMessageBox.confirm('确认退租该合同吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      // 这里调用退租接口，传入 contractId
+      // await terminateLeaseAPI(contractId)
+      await outRentAPI(contractId)
+      ElMessage.success('退租成功')
+      // 刷新企业列表，获取最新的合同状态
+      getExterpriseList()
+    })
+    .catch(() => {
+      ElMessage.info('已取消退租')
+    })
+}
 getExterpriseList()
 </script>
 

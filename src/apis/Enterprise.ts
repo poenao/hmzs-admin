@@ -5,10 +5,10 @@ import type {
   EnterpriseParams,
   EnterpriseDetail,
   EnterpriseFile,
-  Rent
+  Rent,
+  Datum
 } from '@/types/enterprise'
-import { request } from '@/utils/reuqest'
-import type { UploadUserFile } from 'element-plus'
+import { request, service } from '@/utils/reuqest'
 
 /**
  *获取企业数据
@@ -94,4 +94,42 @@ export const getRentBuildListAPI = () => {
  */
 export const createRentAPI = (data: Rent) => {
   return request('/park/enterprise/rent', 'POST', data)
+}
+
+/**
+ *  获取企业下合同列表
+ * @param {*} id
+ * @returns
+ */
+export const getRentListAPI = (id: string) => {
+  return request<Datum[]>(`/park/enterprise/rent/${id}`)
+}
+
+/**
+ * 退租
+ * @param {合同id} rentId
+ * @returns
+ */
+export const outRentAPI = (rentId: string) => {
+  return request(`/park/enterprise/rent/${rentId}`, 'PUT')
+}
+
+/**
+ * 查看企业合同详情
+ * @param {合同id} rentId
+ */
+export const getRentDetailAPI = (rentId: string) => {
+  return request<EnterpriseDetail>(`/park/enterprise/${rentId}`)
+}
+
+/**
+ * 下载合同 * @param {合同id} rentId
+ * @returns
+ */
+
+export const downloadRentAPI = (contractId: string) => {
+  return service({
+    url: `/download/${contractId}`,
+    responseType: 'blob' // 设置响应类型为 blob
+  })
 }
