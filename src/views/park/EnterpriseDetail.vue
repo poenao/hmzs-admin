@@ -12,7 +12,7 @@ const getEnterpriseRentDetail = ref<EnterpriseDetail | null>(null)
 // 获取企业合同数据
 const getEnterpriseRentList = async () => {
   const res = await getRentDetailAPI(rentId as string)
-  res.data.rent.forEach(item => {
+  res.data.rent.forEach (item => {
     // 获取合同URL 如果是pdf文件，直接预览，如果是office文件，拼接预览地址
     const url = item.contractUrl
     // 获取文件扩展名

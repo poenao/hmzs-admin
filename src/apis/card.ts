@@ -1,3 +1,4 @@
+import type { CarListParams } from '@/types/car'
 import type {
   ApifoxModel,
   CardDetail,
@@ -53,6 +54,14 @@ export const deleteCardApi = (id: string) => {
  * @param {*} ids [1,2,3]
  * @returns
  */
-export const delAllCardAPI = (ids: number[])=> {
+export const delAllCardAPI = (ids: number[]) => {
   return request(`/parking/card/${ids.join(',')}`, 'DELETE')
+}
+
+/**
+ * 月卡计算规则
+ * @param {*} data
+ */
+export const calculateCardApi = (params: CarListParams) => {
+  return request<CardListData>('/parking/rule/list', 'GET', params)
 }
