@@ -58,6 +58,9 @@ getTreeList()
             :data="item.children"
             :props="{ label: 'title' }"
             node-key="id"
+            show-checkbox
+            default-expand-all
+            :check-strictly="true"
           />
         </div>
       </div>
