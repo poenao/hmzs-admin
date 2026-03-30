@@ -8,6 +8,7 @@ import type {
   Rent,
   Datum
 } from '@/types/enterprise'
+import type { RoleData } from '@/types/system'
 import { request, service } from '@/utils/reuqest'
 
 /**

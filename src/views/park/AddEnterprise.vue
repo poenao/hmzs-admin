@@ -116,7 +116,7 @@ const uploadRequest = async (options: UploadRequestOptions): Promise<any> => {
   fd.append('type', 'businessLicense');
   const res = await uploadAPI(fd);
   addForm.value.businessLicenseUrl = res.data.url || '';
-  addForm.value.businessLicenseId = String(res.data.uid || '');
+  addForm.value.businessLicenseId = String(res.data.id || '');
   fileList.value.push({
     name: file.name,
     url: res.data.url

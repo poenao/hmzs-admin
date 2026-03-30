@@ -12,3 +12,18 @@ export interface Role {
    */
   roleName?: string
 }
+
+export interface RoleData {
+  /**
+   * 子集
+   */
+  children?: RoleData[]
+  /**
+   * id
+   */
+  id?: number
+  /**
+   * 权限功能点信息
+   */
+  title?: string
+}

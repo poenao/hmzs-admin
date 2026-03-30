@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { getRoleListAPI } from '@/apis/system'
-import type { Role } from '@/types/system'
-import { ref } from 'vue'
+import { getRoleListAPI, getTreeListAPI } from '@/apis/system'
+import type { Role, RoleData } from '@/types/system'
+import { onMounted, ref } from 'vue'
 import user from '@/assets/user.svg'
 import activeUser from '@/assets/user-active.svg'
 const roleList = ref<Role[]>([])
@@ -19,10 +19,18 @@ getRolesList()
 const handleRoleClick = (index: number) => {
   activeIndex.value = index
 }
+// TODO 获取权限和成员列表
+const treeList = ref<RoleData[]>([])
+const getTreeList = async () => {
+  const res = await getTreeListAPI()
+  treeList.value = res.data
+}
+getTreeList()
 </script>
 
 <template>
   <div class="role-container">
+    <!-- 左侧 -->
     <div class="left-wrapper">
       <div
         class="role-item"
@@ -40,6 +48,19 @@ const handleRoleClick = (index: number) => {
         </div>
       </div>
       <el-button class="addBtn" size="small">添加角色</el-button>
+    </div>
+    <!-- 右侧权限和成员 -->
+    <div class="right-wrapper">
+      <div class="tree-wrapper">
+        <div class="tree-item" v-for="item in treeList" :key="item.id">
+          <div class="tree-title">{{ item.title }}</div>
+          <el-tree
+            :data="item.children"
+            :props="{ label: 'title' }"
+            node-key="id"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
