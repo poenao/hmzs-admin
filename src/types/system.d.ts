@@ -26,4 +26,8 @@ export interface RoleData {
    * 权限功能点信息
    */
   title?: string
+  /**
+   * 是否禁用
+   */
+  disabled?: boolean
 }

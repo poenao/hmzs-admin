@@ -24,8 +24,22 @@ const treeList = ref<RoleData[]>([])
 const getTreeList = async () => {
   const res = await getTreeListAPI()
   treeList.value = res.data
+  // 调用函数添加disabled属性
+  geTreeDisabled(treeList.value)
 }
 getTreeList()
+// 4. 在数据对象中添加disabled
+const geTreeDisabled = (data: RoleData[]) => {
+  // 递归遍历数据对象添加disabled属性
+  data.forEach(item => {
+    item.disabled = true
+    // 如果有子节点，继续递归
+    if (item.children) {
+      // 递归调用函数参数是子节点数组
+      geTreeDisabled(item.children)
+    }
+  })
+}
 </script>
 
 <template>
