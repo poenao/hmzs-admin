@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import { getTreeListAPI } from '@/apis/system'
+import { ElMessage, type ElTree } from 'element-plus'
+import { el } from 'element-plus/es/locales.mjs'
 import { onMounted, ref } from 'vue'
 const activeStep = ref<number>(0) //状态码
 // 角色信息表单
 const roleForm = ref({
   roleName: '', // 角色名称
   remark: '', // 角色描述
-  permissions: [] // 角色权限
+  permissions: [] as (string | number)[] // 角色权限
 })
 // 角色信息表单校验规则
 const roleRules = ref({
   roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
   remark: [{ required: true, message: '请输入角色描述', trigger: 'blur' }]
 })
+// 角色信息表单ref
 const roleFormRef = ref()
+//权限树ref
+const treeRef = ref()
 //上一步
 const decreseStep = () => {
   if (activeStep.value === 0) return
@@ -30,15 +35,30 @@ const increaseStep = () => {
       }
     })
   } else if (activeStep.value === 1) {
+    //收集权限树选中项
+    //树实例获取树选中项的id数组
+    treeRef.value.forEach((tree: InstanceType<typeof ElTree>) => {
+      //遍历数据之前先清空权限数组，避免重复添加
+      roleForm.value.permissions = []
+      // 获取选中项的id数组 通过.getCheckedKeys()方法获取
+      const checkedKeys = tree.getCheckedKeys()
+      roleForm.value.permissions?.push(...checkedKeys)
+      if (roleForm.value.permissions.flat().length === 0) {
+        //如果没有选中任何权限，提示用户至少选择一个权限
+        ElMessage.error('请至少选择一个权限')
+      } else {
+        activeStep.value++
+      }
+    })
   } else if (activeStep.value === 2) {
   }
 }
+
 // 权限树所有数据
 const treeList = ref<any[]>([])
 // 拿到权限树所有数据
 const getTreeList = async () => {
   const { data } = await getTreeListAPI()
-  console.log(data)
   treeList.value = data
 }
 
@@ -68,7 +88,6 @@ onMounted(() => {
             class="form-box"
             :model="roleForm"
             :rules="roleRules"
-            
           >
             <el-form-item label="角色名称" prop="roleName">
               <el-input v-model="roleForm.roleName" />
@@ -90,7 +109,7 @@ onMounted(() => {
             >
               <div class="tree-title">{{ item.title }}</div>
               <el-tree
-                ref="tree"
+                ref="treeRef"
                 :data="item.children"
                 show-checkbox
                 default-expand-all
