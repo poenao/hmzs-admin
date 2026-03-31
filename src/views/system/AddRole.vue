@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { getTreeListAPI } from '@/apis/system'
+import { createRoleUserAPI, getTreeListAPI } from '@/apis/system'
+import type { RoleParams } from '@/types/system'
 import { ElMessage, type ElTree } from 'element-plus'
-import { el } from 'element-plus/es/locales.mjs'
+
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 const activeStep = ref<number>(0) //状态码
 // 角色信息表单
-const roleForm = ref({
+const roleForm = ref<RoleParams>({
   roleName: '', // 角色名称
   remark: '', // 角色描述
-  permissions: [] as (string | number)[] // 角色权限
+  perms: []
 })
 // 角色信息表单校验规则
 const roleRules = ref({
@@ -38,25 +40,24 @@ const increaseStep = () => {
     })
   } else if (activeStep.value === 1) {
     //遍历数据之前先清空权限数组，避免重复添加
-    roleForm.value.permissions = []
+    roleForm.value.perms = []
     //收集权限树选中项
     //树实例获取树选中项的id数组
     treeRef.value.forEach((tree: InstanceType<typeof ElTree>) => {
       // 获取选中项的id数组 通过.getCheckedKeys()方法获取
-      roleForm.value.permissions?.push(...tree.getCheckedKeys() as (string | number)[])
+      roleForm.value.perms?.push(tree.getCheckedKeys() as number[])
     })
-    if (roleForm.value.permissions.flat().length === 0) {
+    if (roleForm.value.perms.flat().length === 0) {
       //如果没有选中任何权限，提示用户至少选择一个权限
       ElMessage.error('请至少选择一个权限')
     } else {
       // 如果长度不为零，进入到检查并完成
       activeStep.value++
       //回填权限树选中项
-      diabledTreeRef.value.forEach((tree: any) => {
-        tree.setCheckedKeys(roleForm.value.permissions)
+      diabledTreeRef.value.forEach((tree: any, index: number) => {
+        tree.setCheckedKeys(roleForm.value.perms![index])
       })
     }
-  } else if (activeStep.value === 2) {
   }
 }
 
@@ -71,6 +72,18 @@ const getTreeList = async () => {
 onMounted(() => {
   getTreeList()
 })
+// 创建角色
+const router = useRouter()
+const createRole = async () => {
+  const res = await createRoleUserAPI(roleForm.value)
+  if (res.code === 10000) {
+    ElMessage.success('角色创建成功')
+    // 返回角色列表页
+    router.back()
+  } else {
+    ElMessage.error('角色创建失败')
+  }
+}
 </script>
 
 <template>
@@ -158,7 +171,9 @@ onMounted(() => {
         <el-button @click="increaseStep" v-if="activeStep < 2" type="primary"
           >下一步</el-button
         >
-        <el-button v-if="activeStep === 2" type="primary">确认添加</el-button>
+        <el-button v-if="activeStep === 2" type="primary" @click="createRole"
+          >确认添加</el-button
+        >
       </div>
     </footer>
   </div>
