@@ -9,6 +9,7 @@ import type { Role, RoleData, RoleUser } from '@/types/system'
 import { onMounted, ref } from 'vue'
 import user from '@/assets/user.svg'
 import activeUser from '@/assets/user-active.svg'
+import { useRouter } from 'vue-router'
 
 // ======================== 角色列表模块 ========================
 
@@ -135,6 +136,8 @@ onMounted(async () => {
     }
   }
 })
+//删除角色
+const handleDeleteRole = (_roleId: number) => {}
 </script>
 
 <template>
@@ -153,10 +156,30 @@ onMounted(async () => {
           {{ item.roleName }}
         </div>
         <div class="more">
-          <img src="@/assets/more.svg" class="icon" />
+          <el-dropdown>
+            <span class="el-dropdown-link">
+              <img src="@/assets/more.svg" class="icon" />
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  @click="$router.push(`/roleAdd?roleId=${item.roleId}`)"
+                  >编辑角色</el-dropdown-item
+                >
+                <el-dropdown-item
+                  @click="
+                    item.roleId !== undefined && handleDeleteRole(item.roleId)
+                  "
+                  >删除</el-dropdown-item
+                >
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </div>
-      <el-button class="addBtn" size="small" @click="$router.push('/roleAdd')">添加角色</el-button>
+      <el-button class="addBtn" size="small" @click="$router.push('/roleAdd')"
+        >添加角色</el-button
+      >
     </div>
     <!-- 右侧权限和成员 -->
     <div class="right-wrapper">

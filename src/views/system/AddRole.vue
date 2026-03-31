@@ -4,7 +4,7 @@ import type { RoleParams } from '@/types/system'
 import { ElMessage, type ElTree } from 'element-plus'
 
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 const activeStep = ref<number>(0) //状态码
 // 角色信息表单
 const roleForm = ref<RoleParams>({
@@ -84,12 +84,25 @@ const createRole = async () => {
     ElMessage.error('角色创建失败')
   }
 }
+
+/**
+ * 编辑模块
+ *
+ */
+
+//拿到页面ID
+
+const route = useRoute()
+const roleId = route.query.roleId
 </script>
 
 <template>
   <div class="add-role">
     <header class="add-header">
-      <el-page-header content="添加角色" @back="$router.back()" />
+      <el-page-header
+        :content="roleId ? '编辑角色' : '添加角色'"
+        @back="$router.back()"
+      />
     </header>
     <main class="add-main">
       <div class="step-container">
