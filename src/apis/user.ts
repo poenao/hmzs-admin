@@ -1,3 +1,4 @@
+import type { RoleParams } from '@/types/system'
 import type { LoginParams } from '@/types/user'
 import { request } from '@/utils/reuqest'
 

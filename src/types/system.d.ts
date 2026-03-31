@@ -98,5 +98,5 @@ export interface RoleParams {
   /**
    * 角色id
    */
-  roleId?: string
+  roleId?: number
 }

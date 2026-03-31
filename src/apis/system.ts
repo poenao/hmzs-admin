@@ -52,3 +52,11 @@ export const createRoleUserAPI = (data: RoleParams) => {
 export const delRoleUserAPI = (roleId: string) => {
   return request(`/park/sys/role/${roleId}`, 'DELETE')
 }
+
+/**
+ * 更改角色
+ * @returns
+ */
+export const updateRoleAPI = (data: RoleParams) => {
+  return request('/park/sys/role', 'PUT', data)
+}

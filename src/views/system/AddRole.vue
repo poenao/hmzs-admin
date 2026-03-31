@@ -2,7 +2,8 @@
 import {
   createRoleUserAPI,
   getRoleDetailAPI,
-  getTreeListAPI
+  getTreeListAPI,
+  updateRoleAPI
 } from '@/apis/system'
 import type { RoleParams } from '@/types/system'
 import { ElMessage, type ElTree } from 'element-plus'
@@ -18,7 +19,7 @@ const roleForm = ref<RoleParams>({
   roleName: '', // 角色名称
   remark: '', // 角色描述
   perms: [],
-  roleId: '' // 角色id，编辑时需要传递
+  roleId: 0 // 角色id，编辑时需要传递
 })
 // 角色信息表单校验规则
 const roleRules = ref({
@@ -87,13 +88,24 @@ onMounted(() => {
 // 创建角色
 const router = useRouter()
 const createRole = async () => {
-  const res = await createRoleUserAPI(roleForm.value)
-  if (res.code === 10000) {
-    ElMessage.success('角色创建成功')
-    // 返回角色列表页
-    router.back()
+  if (roleId.value) {
+    const res = await updateRoleAPI(roleForm.value)
+    if (res.code === 10000) {
+      ElMessage.success('角色修改成功')
+      // 返回角色列表页
+      router.back()
+    } else {
+      ElMessage.error('角色修改失败')
+    }
   } else {
-    ElMessage.error('角色创建失败')
+    const res = await createRoleUserAPI(roleForm.value)
+    if (res.code === 10000) {
+      ElMessage.success('角色创建成功')
+      // 返回角色列表页
+      router.back()
+    } else {
+      ElMessage.error('角色创建失败')
+    }
   }
 }
 
@@ -111,7 +123,7 @@ const getRoleDetailEdit = async (id: any) => {
     roleName,
     remark,
     perms,
-    roleId
+    roleId: Number(roleId)
   }
   // 手动设置tree组件的勾选 回显数据
   treeRef.value?.forEach((tree: InstanceType<typeof ElTree>, index: number) => {
@@ -209,7 +221,7 @@ const getRoleDetailEdit = async (id: any) => {
           >下一步</el-button
         >
         <el-button v-if="activeStep === 2" type="primary" @click="createRole">{{
-          roleId.value ? '确认修改' : '确认添加'
+          roleId ? '确认修改' : '确认添加'
         }}</el-button>
       </div>
     </footer>
