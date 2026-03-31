@@ -19,6 +19,8 @@ const roleRules = ref({
 const roleFormRef = ref()
 //权限树ref
 const treeRef = ref()
+// 回填权限树ref
+const diabledTreeRef = ref()
 //上一步
 const decreseStep = () => {
   if (activeStep.value === 0) return
@@ -35,21 +37,25 @@ const increaseStep = () => {
       }
     })
   } else if (activeStep.value === 1) {
+    //遍历数据之前先清空权限数组，避免重复添加
+    roleForm.value.permissions = []
     //收集权限树选中项
     //树实例获取树选中项的id数组
     treeRef.value.forEach((tree: InstanceType<typeof ElTree>) => {
-      //遍历数据之前先清空权限数组，避免重复添加
-      roleForm.value.permissions = []
       // 获取选中项的id数组 通过.getCheckedKeys()方法获取
-      const checkedKeys = tree.getCheckedKeys()
-      roleForm.value.permissions?.push(...checkedKeys)
-      if (roleForm.value.permissions.flat().length === 0) {
-        //如果没有选中任何权限，提示用户至少选择一个权限
-        ElMessage.error('请至少选择一个权限')
-      } else {
-        activeStep.value++
-      }
+      roleForm.value.permissions?.push(...tree.getCheckedKeys() as (string | number)[])
     })
+    if (roleForm.value.permissions.flat().length === 0) {
+      //如果没有选中任何权限，提示用户至少选择一个权限
+      ElMessage.error('请至少选择一个权限')
+    } else {
+      // 如果长度不为零，进入到检查并完成
+      activeStep.value++
+      //回填权限树选中项
+      diabledTreeRef.value.forEach((tree: any) => {
+        tree.setCheckedKeys(roleForm.value.permissions)
+      })
+    }
   } else if (activeStep.value === 2) {
   }
 }
@@ -123,7 +129,27 @@ onMounted(() => {
       </div>
       <div class="form-container" v-show="activeStep === 2">
         <div class="title">检查并完成</div>
-        <div class="form">检查并完成内容</div>
+        <div class="form">
+          <div class="info">
+            <div class="form-item">角色名称：{{ roleForm.roleName }}</div>
+            <div class="form-item">角色描述：{{ roleForm.remark }}</div>
+            <div class="form-item">角色权限：</div>
+            <div class="tree-wrapper">
+              <div v-for="item in treeList" :key="item.id" class="tree-item">
+                <div class="tree-title">{{ item.title }}</div>
+                <el-tree
+                  ref="diabledTreeRef"
+                  :data="item.children"
+                  show-checkbox
+                  default-expand-all
+                  :check-strictly="true"
+                  node-key="id"
+                  :props="{ label: 'title', disabled: () => true }"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
     <footer class="add-footer">
