@@ -55,6 +55,7 @@ const getRoleDetail = async (roleId: number) => {
   })
 }
 const treeRef = ref() // 获取树组件tree实例
+const activeName = ref<'tree' | 'member'>('tree') // 左侧切换组件默认选中树组件
 onMounted(async () => {
   await getTreeList()
   await getRolesList()
@@ -94,20 +95,30 @@ onMounted(async () => {
     </div>
     <!-- 右侧权限和成员 -->
     <div class="right-wrapper">
-      <div class="tree-wrapper">
-        <div class="tree-item" v-for="item in treeList" :key="item.id">
-          <div class="tree-title">{{ item.title }}</div>
-          <el-tree
-            ref="treeRef"
-            :data="item.children"
-            :props="{ label: 'title' }"
-            node-key="id"
-            show-checkbox
-            default-expand-all
-            :check-strictly="true"
-          />
-        </div>
-      </div>
+      <!-- 左侧切换组件 -->
+      <el-tabs>
+        <!-- 权限树组件 -->
+        <el-tab-pane label="功能权限" name="tree">
+          <div class="tree-wrapper">
+            <div class="tree-item" v-for="item in treeList" :key="item.id">
+              <div class="tree-title">{{ item.title }}</div>
+              <el-tree
+                ref="treeRef"
+                :data="item.children"
+                :props="{ label: 'title' }"
+                node-key="id"
+                show-checkbox
+                default-expand-all
+                :check-strictly="true"
+              />
+            </div>
+          </div>
+        </el-tab-pane>
+        <!-- 成员列表组件 -->
+        <el-tab-pane label="成员列表(100)" name="member">
+          <div class="user-wrapper">成员管理</div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
   </div>
 </template>
