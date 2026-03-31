@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { getTreeListAPI } from '@/apis/system'
+import { onMounted, ref } from 'vue'
 const activeStep = ref<number>(0) //状态码
 // 角色信息表单
 const roleForm = ref({
-  roleName: '',
-  remark: ''
+  roleName: '', // 角色名称
+  remark: '', // 角色描述
+  permissions: [] // 角色权限
 })
 // 角色信息表单校验规则
 const roleRules = ref({
@@ -31,6 +33,18 @@ const increaseStep = () => {
   } else if (activeStep.value === 2) {
   }
 }
+// 权限树所有数据
+const treeList = ref<any[]>([])
+// 拿到权限树所有数据
+const getTreeList = async () => {
+  const { data } = await getTreeListAPI()
+  console.log(data)
+  treeList.value = data
+}
+
+onMounted(() => {
+  getTreeList()
+})
 </script>
 
 <template>
@@ -54,6 +68,7 @@ const increaseStep = () => {
             class="form-box"
             :model="roleForm"
             :rules="roleRules"
+            
           >
             <el-form-item label="角色名称" prop="roleName">
               <el-input v-model="roleForm.roleName" />
@@ -66,7 +81,26 @@ const increaseStep = () => {
       </div>
       <div class="form-container" v-show="activeStep === 1">
         <div class="title">权限配置</div>
-        <div class="form">权限配置内容</div>
+        <div class="form">
+          <div class="tree-wrapper">
+            <div
+              class="tree-item"
+              v-for="(item, index) in treeList"
+              :key="index"
+            >
+              <div class="tree-title">{{ item.title }}</div>
+              <el-tree
+                ref="tree"
+                :data="item.children"
+                show-checkbox
+                default-expand-all
+                node-key="id"
+                highlight-current
+                :props="{ label: 'title' }"
+              />
+            </div>
+          </div>
+        </div>
       </div>
       <div class="form-container" v-show="activeStep === 2">
         <div class="title">检查并完成</div>
@@ -79,6 +113,7 @@ const increaseStep = () => {
         <el-button @click="increaseStep" v-if="activeStep < 2" type="primary"
           >下一步</el-button
         >
+        <el-button v-if="activeStep === 2" type="primary">确认添加</el-button>
       </div>
     </footer>
   </div>
