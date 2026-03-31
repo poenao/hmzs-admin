@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getRoleListAPI, getTreeListAPI } from '@/apis/system'
+import { getRoleDetailAPI, getRoleListAPI, getTreeListAPI } from '@/apis/system'
 import type { Role, RoleData } from '@/types/system'
 import { onMounted, ref } from 'vue'
 import user from '@/assets/user.svg'
@@ -13,11 +13,16 @@ const getRolesList = async () => {
   const res = await getRoleListAPI()
   roleList.value = res.data
 }
-getRolesList()
 
 // 点击角色切换索引高亮
 const handleRoleClick = (index: number) => {
   activeIndex.value = index
+  // TODO 获取当前角色权限点
+  const roleId = roleList.value[index].roleId
+  // 获取当前角色权限点
+  if (roleId !== undefined) {
+    getRoleDetail(roleId)
+  }
 }
 // TODO 获取权限和成员列表
 const treeList = ref<RoleData[]>([])
@@ -27,7 +32,6 @@ const getTreeList = async () => {
   // 调用函数添加disabled属性
   geTreeDisabled(treeList.value)
 }
-getTreeList()
 // 4. 在数据对象中添加disabled
 const geTreeDisabled = (data: RoleData[]) => {
   // 递归遍历数据对象添加disabled属性
@@ -40,6 +44,31 @@ const geTreeDisabled = (data: RoleData[]) => {
     }
   })
 }
+// 5. 获取当前角色权限点
+const perms = ref<number[]>([]) // 存储当前角色权限点
+const getRoleDetail = async (roleId: number) => {
+  const res = await getRoleDetailAPI(roleId)
+  perms.value = res.data.perms
+  // 获取树组件实例，调用setCheckedKeys方法设置选中节点
+  treeRef.value?.forEach((tree: any, index: any) => {
+    tree.setCheckedKeys(res.data.perms[index]) // 设置选中节点，参数是权限点数组
+  })
+}
+const treeRef = ref() // 获取树组件tree实例
+onMounted(async () => {
+  await getTreeList()
+  await getRolesList()
+  // 默认选中第一个角色
+  if (roleList.value.length > 0) {
+    // 设置默认选中索引为0
+    activeIndex.value = 0
+    // 获取第一个角色的权限点
+    const roleId = roleList.value[0].roleId
+    if (roleId !== undefined) {
+      getRoleDetail(roleId)
+    }
+  }
+})
 </script>
 
 <template>
@@ -69,6 +98,7 @@ const geTreeDisabled = (data: RoleData[]) => {
         <div class="tree-item" v-for="item in treeList" :key="item.id">
           <div class="tree-title">{{ item.title }}</div>
           <el-tree
+            ref="treeRef"
             :data="item.children"
             :props="{ label: 'title' }"
             node-key="id"
