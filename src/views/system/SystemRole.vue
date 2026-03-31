@@ -138,7 +138,8 @@ onMounted(async () => {
     }
   }
 })
-//删除角色
+//删除角色 点击事件拿到角色ID
+// 1. 弹出确认框，提示用户是否确认删除
 const handleDeleteRole = (roleId: number) => {
   ElMessageBox.confirm('确认删除该角色吗？', '提示', {
     confirmButtonText: '确定',
@@ -148,8 +149,9 @@ const handleDeleteRole = (roleId: number) => {
     const res = await delRoleUserAPI(roleId.toString())
     if (res.code === 10000) {
       ElMessage.success('删除成功')
-      // 重新获取角色列表
+      // 重新获取角色列表 选择变成第一个
       await getRolesList()
+      getRoleDetail(roleList.value[0].roleId!)
     } else {
       ElMessage.error('删除失败')
     }

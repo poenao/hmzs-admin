@@ -86,7 +86,7 @@ export interface RoleParams {
   /**
    * 菜单/功能点权限信息
    */
-  perms?: number[][]
+  perms?: number[]
   /**
    * 角色描述
    */
@@ -95,4 +95,8 @@ export interface RoleParams {
    * 角色名称
    */
   roleName?: string
+  /**
+   * 角色id
+   */
+  roleId?: string
 }

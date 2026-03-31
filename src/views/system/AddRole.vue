@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import { createRoleUserAPI, getTreeListAPI } from '@/apis/system'
+import {
+  createRoleUserAPI,
+  getRoleDetailAPI,
+  getTreeListAPI
+} from '@/apis/system'
 import type { RoleParams } from '@/types/system'
 import { ElMessage, type ElTree } from 'element-plus'
 
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+//拿到页面ID
+const route = useRoute()
+const roleId = ref()
 const activeStep = ref<number>(0) //状态码
 // 角色信息表单
 const roleForm = ref<RoleParams>({
   roleName: '', // 角色名称
   remark: '', // 角色描述
-  perms: []
+  perms: [],
+  roleId: '' // 角色id，编辑时需要传递
 })
 // 角色信息表单校验规则
 const roleRules = ref({
@@ -45,7 +53,7 @@ const increaseStep = () => {
     //树实例获取树选中项的id数组
     treeRef.value.forEach((tree: InstanceType<typeof ElTree>) => {
       // 获取选中项的id数组 通过.getCheckedKeys()方法获取
-      roleForm.value.perms?.push(tree.getCheckedKeys() as number[])
+      roleForm.value.perms?.push(tree.getCheckedKeys() as any)
     })
     if (roleForm.value.perms.flat().length === 0) {
       //如果没有选中任何权限，提示用户至少选择一个权限
@@ -71,6 +79,10 @@ const getTreeList = async () => {
 
 onMounted(() => {
   getTreeList()
+  roleId.value = route.query.roleId
+  if (roleId.value) {
+    getRoleDetailEdit(roleId.value)
+  }
 })
 // 创建角色
 const router = useRouter()
@@ -90,10 +102,22 @@ const createRole = async () => {
  *
  */
 
-//拿到页面ID
-
-const route = useRoute()
-const roleId = route.query.roleId
+// 发请求传递角色id回填数据
+const getRoleDetailEdit = async (id: any) => {
+  const res = await getRoleDetailAPI(id)
+  // 回填数据
+  const { roleName, remark, perms, roleId } = res.data
+  roleForm.value = {
+    roleName,
+    remark,
+    perms,
+    roleId
+  }
+  // 手动设置tree组件的勾选 回显数据
+  treeRef.value?.forEach((tree: InstanceType<typeof ElTree>, index: number) => {
+    tree.setCheckedKeys(perms[index] as any)
+  })
+}
 </script>
 
 <template>
@@ -184,9 +208,9 @@ const roleId = route.query.roleId
         <el-button @click="increaseStep" v-if="activeStep < 2" type="primary"
           >下一步</el-button
         >
-        <el-button v-if="activeStep === 2" type="primary" @click="createRole"
-          >确认添加</el-button
-        >
+        <el-button v-if="activeStep === 2" type="primary" @click="createRole">{{
+          roleId.value ? '确认修改' : '确认添加'
+        }}</el-button>
       </div>
     </footer>
   </div>
