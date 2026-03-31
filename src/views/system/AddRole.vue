@@ -1,14 +1,35 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 const activeStep = ref<number>(0) //状态码
-
+// 角色信息表单
+const roleForm = ref({
+  roleName: '',
+  remark: ''
+})
+// 角色信息表单校验规则
+const roleRules = ref({
+  roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
+  remark: [{ required: true, message: '请输入角色描述', trigger: 'blur' }]
+})
+const roleFormRef = ref()
+//上一步
 const decreseStep = () => {
   if (activeStep.value === 0) return
   activeStep.value--
 }
+//下一步
 const increaseStep = () => {
   if (activeStep.value === 2) return
-  activeStep.value++
+  //第一步校验表单收集信息再下一步
+  if (activeStep.value === 0) {
+    roleFormRef.value.validate((valid: boolean) => {
+      if (valid) {
+        activeStep.value++
+      }
+    })
+  } else if (activeStep.value === 1) {
+  } else if (activeStep.value === 2) {
+  }
 }
 </script>
 
@@ -27,7 +48,21 @@ const increaseStep = () => {
       </div>
       <div class="form-container" v-show="activeStep === 0">
         <div class="title">角色信息</div>
-        <div class="form">角色信息内容</div>
+        <div class="form">
+          <el-form
+            ref="roleFormRef"
+            class="form-box"
+            :model="roleForm"
+            :rules="roleRules"
+          >
+            <el-form-item label="角色名称" prop="roleName">
+              <el-input v-model="roleForm.roleName" />
+            </el-form-item>
+            <el-form-item label="角色描述" prop="remark">
+              <el-input v-model="roleForm.remark" />
+            </el-form-item>
+          </el-form>
+        </div>
       </div>
       <div class="form-container" v-show="activeStep === 1">
         <div class="title">权限配置</div>
