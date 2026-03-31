@@ -56,6 +56,9 @@ const getRoleDetail = async (roleId: number) => {
 }
 const treeRef = ref() // 获取树组件tree实例
 const activeName = ref<'tree' | 'member'>('tree') // 左侧切换组件默认选中树组件
+const handleTabClick = (val: any) => {
+  activeName.value = val // 切换组件时更新activeName的值
+}
 onMounted(async () => {
   await getTreeList()
   await getRolesList()
@@ -96,7 +99,11 @@ onMounted(async () => {
     <!-- 右侧权限和成员 -->
     <div class="right-wrapper">
       <!-- 左侧切换组件 -->
-      <el-tabs>
+      <el-tabs
+        v-model="activeName"
+        type="border-card"
+        @tab-click="handleTabClick"
+      >
         <!-- 权限树组件 -->
         <el-tab-pane label="功能权限" name="tree">
           <div class="tree-wrapper">
