@@ -1,75 +1,137 @@
 <script setup lang="ts">
-import { getRoleDetailAPI, getRoleListAPI, getTreeListAPI } from '@/apis/system'
-import type { Role, RoleData } from '@/types/system'
+import {
+  getRoleDetailAPI,
+  getRoleListAPI,
+  getRoleUserAPI,
+  getTreeListAPI
+} from '@/apis/system'
+import type { Role, RoleData, RoleUser } from '@/types/system'
 import { onMounted, ref } from 'vue'
 import user from '@/assets/user.svg'
 import activeUser from '@/assets/user-active.svg'
+
+// ======================== 角色列表模块 ========================
+
+// 角色列表数据
 const roleList = ref<Role[]>([])
-// 索引高亮标记
+// 当前选中角色的索引（用于高亮显示）
 const activeIndex = ref<number | null>(null)
-// 角色列表
+
+/**
+ * 获取角色列表
+ * 调用接口获取所有角色数据并赋值给 roleList
+ */
 const getRolesList = async () => {
-  // TODO 获取角色列表
   const res = await getRoleListAPI()
   roleList.value = res.data
 }
 
-// 点击角色切换索引高亮
+/**
+ * 点击角色项 - 切换高亮 & 加载对应权限和成员
+ * @param index 当前点击的角色索引
+ */
 const handleRoleClick = (index: number) => {
   activeIndex.value = index
-  // TODO 获取当前角色权限点
   const roleId = roleList.value[index].roleId
-  // 获取当前角色权限点
   if (roleId !== undefined) {
     getRoleDetail(roleId)
+    getRoleUserList(roleId)
   }
 }
-// TODO 获取权限和成员列表
+
+// ======================== 权限树模块 ========================
+
+// 权限树数据
 const treeList = ref<RoleData[]>([])
+// 树组件实例引用（多个树，所以是数组）
+const treeRef = ref()
+
+/**
+ * 获取权限树列表
+ * 获取后递归添加 disabled 属性，使树节点默认不可编辑
+ */
 const getTreeList = async () => {
   const res = await getTreeListAPI()
   treeList.value = res.data
-  // 调用函数添加disabled属性
-  geTreeDisabled(treeList.value)
+  setTreeDisabled(treeList.value)
 }
-// 4. 在数据对象中添加disabled
-const geTreeDisabled = (data: RoleData[]) => {
-  // 递归遍历数据对象添加disabled属性
+
+/**
+ * 递归设置树节点 disabled 属性
+ * 使所有节点默认处于禁用（不可编辑）状态
+ * @param data 树节点数组
+ */
+const setTreeDisabled = (data: RoleData[]) => {
   data.forEach(item => {
     item.disabled = true
-    // 如果有子节点，继续递归
     if (item.children) {
-      // 递归调用函数参数是子节点数组
-      geTreeDisabled(item.children)
+      setTreeDisabled(item.children)
     }
   })
 }
-// 5. 获取当前角色权限点
-const perms = ref<number[]>([]) // 存储当前角色权限点
+
+// 当前角色的权限点 ID 集合
+const perms = ref<number[]>([])
+
+/**
+ * 获取当前角色的权限详情
+ * 请求接口后，通过 setCheckedKeys 回显选中的权限节点
+ * @param roleId 角色 ID
+ */
 const getRoleDetail = async (roleId: number) => {
   const res = await getRoleDetailAPI(roleId)
   perms.value = res.data.perms
-  // 获取树组件实例，调用setCheckedKeys方法设置选中节点
+  // 遍历每棵树，分别设置对应的选中节点
   treeRef.value?.forEach((tree: any, index: any) => {
-    tree.setCheckedKeys(res.data.perms[index]) // 设置选中节点，参数是权限点数组
+    tree.setCheckedKeys(res.data.perms[index])
   })
 }
-const treeRef = ref() // 获取树组件tree实例
-const activeName = ref<'tree' | 'member'>('tree') // 左侧切换组件默认选中树组件
+
+// ======================== Tab 切换模块 ========================
+
+// 当前激活的 Tab 页签（tree: 功能权限 | member: 成员列表）
+const activeName = ref<'tree' | 'member'>('tree')
+
+/**
+ * Tab 页签切换回调
+ * @param val 切换后的页签名称
+ */
 const handleTabClick = (val: any) => {
-  activeName.value = val // 切换组件时更新activeName的值
+  activeName.value = val
 }
+
+// ======================== 角色成员模块 ========================
+
+// 当前角色的成员列表
+const RoleUserList = ref<RoleUser[]>([])
+
+/**
+ * 获取当前角色的成员列表
+ * @param roleId 角色 ID
+ */
+const getRoleUserList = async (roleId: number) => {
+  const res = await getRoleUserAPI(roleId)
+  RoleUserList.value = res.data.rows
+}
+
+// ======================== 页面初始化 ========================
+
+/**
+ * 页面挂载时：
+ * 1. 获取权限树数据
+ * 2. 获取角色列表
+ * 3. 默认选中第一个角色并加载其权限详情
+ */
 onMounted(async () => {
   await getTreeList()
   await getRolesList()
   // 默认选中第一个角色
   if (roleList.value.length > 0) {
-    // 设置默认选中索引为0
     activeIndex.value = 0
-    // 获取第一个角色的权限点
     const roleId = roleList.value[0].roleId
     if (roleId !== undefined) {
       getRoleDetail(roleId)
+      getRoleUserList(roleId)
     }
   }
 })
@@ -94,7 +156,7 @@ onMounted(async () => {
           <img src="@/assets/more.svg" class="icon" />
         </div>
       </div>
-      <el-button class="addBtn" size="small">添加角色</el-button>
+      <el-button class="addBtn" size="small" @click="$router.push('/roleAdd')">添加角色</el-button>
     </div>
     <!-- 右侧权限和成员 -->
     <div class="right-wrapper">
@@ -122,8 +184,14 @@ onMounted(async () => {
           </div>
         </el-tab-pane>
         <!-- 成员列表组件 -->
-        <el-tab-pane label="成员列表(100)" name="member">
-          <div class="user-wrapper">成员管理</div>
+        <el-tab-pane :label="`成员列表(${RoleUserList.length})`" name="member">
+          <div class="user-wrapper">
+            <el-table :data="RoleUserList">
+              <el-table-column type="index" width="250" label="序号" />
+              <el-table-column prop="name" label="员工姓名" />
+              <el-table-column prop="userName" label="登录账号" />
+            </el-table>
+          </div>
         </el-tab-pane>
       </el-tabs>
     </div>

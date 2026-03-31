@@ -138,6 +138,10 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/park/EnterpriseDetail.vue')
   },
   {
+    path: '/roleAdd',
+    component: () => import('@/views/system/AddRole.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/views/NotFound.vue'),
     meta: { hidden: true }
