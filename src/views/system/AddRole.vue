@@ -1,4 +1,16 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+const activeStep = ref<number>(0) //状态码
+
+const decreseStep = () => {
+  if (activeStep.value === 0) return
+  activeStep.value--
+}
+const increaseStep = () => {
+  if (activeStep.value === 2) return
+  activeStep.value++
+}
+</script>
 
 <template>
   <div class="add-role">
@@ -7,29 +19,31 @@
     </header>
     <main class="add-main">
       <div class="step-container">
-        <el-steps direction="vertical" :active="1">
+        <el-steps direction="vertical" :active="activeStep">
           <el-step title="角色信息" />
           <el-step title="权限信息" />
           <el-step title="检查并完成" />
         </el-steps>
       </div>
-      <div class="form-container">
+      <div class="form-container" v-show="activeStep === 0">
         <div class="title">角色信息</div>
         <div class="form">角色信息内容</div>
       </div>
-      <div class="form-container">
+      <div class="form-container" v-show="activeStep === 1">
         <div class="title">权限配置</div>
         <div class="form">权限配置内容</div>
       </div>
-      <div class="form-container">
+      <div class="form-container" v-show="activeStep === 2">
         <div class="title">检查并完成</div>
         <div class="form">检查并完成内容</div>
       </div>
     </main>
     <footer class="add-footer">
       <div class="btn-container">
-        <el-button>上一步</el-button>
-        <el-button type="primary">下一步</el-button>
+        <el-button @click="decreseStep" v-if="activeStep > 0">上一步</el-button>
+        <el-button @click="increaseStep" v-if="activeStep < 2" type="primary"
+          >下一步</el-button
+        >
       </div>
     </footer>
   </div>
