@@ -112,13 +112,20 @@ export const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    name: 'propety',
     path: '/propety',
     component: MainLayout,
+    meta: { permission: 'property', title: '物业费管理', icon: 'property' },
     children: [
       {
+        name: 'cost',
         path: 'cost',
         component: () => import('@/views/property/PropertyPage.vue'),
-        meta: { title: '物业费管理', icon: 'property' }
+        meta: {
+          title: '物业费管理',
+          icon: 'property',
+          permission: 'property:propertyFee'
+        }
       }
     ]
   },
