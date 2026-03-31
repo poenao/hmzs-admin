@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  delRoleUserAPI,
   getRoleDetailAPI,
   getRoleListAPI,
   getRoleUserAPI,
@@ -10,6 +11,7 @@ import { onMounted, ref } from 'vue'
 import user from '@/assets/user.svg'
 import activeUser from '@/assets/user-active.svg'
 import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 // ======================== 角色列表模块 ========================
 
@@ -137,7 +139,22 @@ onMounted(async () => {
   }
 })
 //删除角色
-const handleDeleteRole = (_roleId: number) => {}
+const handleDeleteRole = (roleId: number) => {
+  ElMessageBox.confirm('确认删除该角色吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    const res = await delRoleUserAPI(roleId.toString())
+    if (res.code === 10000) {
+      ElMessage.success('删除成功')
+      // 重新获取角色列表
+      await getRolesList()
+    } else {
+      ElMessage.error('删除失败')
+    }
+  })
+}
 </script>
 
 <template>
