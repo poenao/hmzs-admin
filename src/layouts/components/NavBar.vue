@@ -1,37 +1,39 @@
 <script setup lang="ts">
-import router from "@/router";
-import { useUserStore } from "@/stores/user";
-import { removeLocalToken } from "@/utils/auth";
-import { ElMessageBox } from "element-plus";
+import router from '@/router'
+import { useUserStore } from '@/stores/user'
+import { removeLocalToken } from '@/utils/auth'
+import { ElMessageBox } from 'element-plus'
 
 const logout = () => {
   // 退出提示
-  ElMessageBox.confirm("确定要退出登录吗？", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
+  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
   })
     .then(() => {
       // 确认退出
       // 删除本地token
-      removeLocalToken();
+      removeLocalToken()
       // 清空store中的token
-      const stroe = useUserStore();
-      stroe.setToken("");
+      const stroe = useUserStore()
+      stroe.setToken('')
       // 跳转到登录页
-      router.push("/login");
+      router.push('/login')
     })
     .catch(() => {
       // 取消退出
-      ElMessageBox.close();
-    });
-};
+      ElMessageBox.close()
+    })
+}
 
 // 打开GitHub项目地址
 const openGithub = () => {
   // 使用 window.open 打开新标签页
-  window.open("https://github.com/poenao/hmzs-admin", "_blank");
-};
+  window.open('https://github.com/poenao/hmzs-admin', '_blank')
+}
+// 个人数据
+const store = useUserStore()
 </script>
 
 <template>
@@ -40,7 +42,7 @@ const openGithub = () => {
     <div></div>
     <!-- dropdown -->
     <el-dropdown>
-      <div class="user-wrapper">黑马管理员</div>
+      <div class="user-wrapper">{{ store.profile.name }}</div>
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item>首页</el-dropdown-item>
