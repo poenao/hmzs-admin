@@ -1,4 +1,32 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import * as echarts from 'echarts'
+import { onMounted, ref } from 'vue'
+
+//柱状图实例
+const mainOneRef = ref()
+onMounted(() => {
+  // 基于准备好的dom，初始化echarts实例
+  const myChart = echarts.init(mainOneRef.value)
+  // 绘制图表
+  myChart.setOption({
+    title: {
+      text: 'ECharts 入门示例'
+    },
+    tooltip: {},
+    xAxis: {
+      data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+    },
+    yAxis: {},
+    series: [
+      {
+        name: '销量',
+        type: 'bar',
+        data: [5, 20, 36, 10, 10, 20]
+      }
+    ]
+  })
+})
+</script>
 
 <template>
   <div class="workbench-page">
@@ -22,14 +50,23 @@
           </div>
         </div>
         <div class="card-container">
-          <div class="card-title">快捷入口</div>
+          <!-- 柱状图 -->
+          <div
+            ref="mainOneRef"
+            class="card-title"
+            style="width: 600px; height: 300px"
+          >
+            快捷入口
+          </div>
         </div>
         <div class="card-container">
+          <!-- 折线图 -->
           <div class="card-title">快捷入口</div>
         </div>
       </el-col>
       <el-col :span="7">
         <div class="card-container">
+          <!-- 饼图 -->
           <div class="card-title">快捷入口</div>
           <div class="card-entry">
             <div class="card-entry-item">
