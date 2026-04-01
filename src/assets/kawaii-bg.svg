@@ -1,0 +1,40 @@
+<svg viewBox="0 0 1000 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 整体背景的梦幻柔和渐变 -->
+    <linearGradient id="mainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E1ECF9" />
+      <stop offset="50%" stop-color="#FCE1E8" />
+      <stop offset="100%" stop-color="#EBE3FF" />
+    </linearGradient>
+
+    <!-- 高斯模糊滤镜，用来做果冻气泡的边缘发光 -->
+    <filter id="blurLight" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="60" />
+    </filter>
+    <filter id="blurHeavy" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="120" />
+    </filter>
+
+    <!-- 二次元十字闪耀星星 -->
+    <g id="sparkle">
+      <path d="M 0 -20 C 0 -5 5 0 20 0 C 5 0 0 5 0 20 C 0 5 -5 0 -20 0 C -5 0 0 -5 0 -20 Z" fill="#FFFFFF" opacity="0.9" />
+    </g>
+  </defs>
+
+  <!-- 1. 铺满背景层 -->
+  <rect width="100%" height="100%" fill="url(#mainBg)" />
+
+  <!-- 2. 漂浮的果冻气泡/光斑 -->
+  <circle cx="100" cy="150" r="350" fill="#FFC3A0" opacity="0.5" filter="url(#blurHeavy)" />
+  <circle cx="900" cy="1000" r="400" fill="#B19CFD" opacity="0.5" filter="url(#blurHeavy)" />
+  <circle cx="850" cy="300" r="250" fill="#91EAE4" opacity="0.4" filter="url(#blurLight)" />
+  <circle cx="200" cy="900" r="200" fill="#FFAFBD" opacity="0.6" filter="url(#blurLight)" />
+
+  <!-- 3. 点缀二次元闪耀星星 -->
+  <use href="#sparkle" transform="translate(150, 200) scale(0.8)" />
+  <use href="#sparkle" transform="translate(800, 150) scale(1.2)" />
+  <use href="#sparkle" transform="translate(700, 800) scale(0.6)" />
+  <use href="#sparkle" transform="translate(250, 700) scale(1)" />
+  <use href="#sparkle" transform="translate(500, 450) scale(0.5)" />
+  <use href="#sparkle" transform="translate(850, 550) scale(0.9)" />
+</svg>

@@ -1,13 +1,13 @@
-import { TOKEN_KEY } from '@/constants'
+import { TOKEN_KEY } from "@/constants";
+import Cookies from "js-cookie";
+export const getLocalToken = () => {
+  return Cookies.get(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "";
+};
 
-export const getToken = () => {
-  return localStorage.getItem(TOKEN_KEY)
-}
+export const setLocalToken = (token: string) => {
+  Cookies.set(TOKEN_KEY, token);
+};
 
-export const setToken = (token: string) => {
-  localStorage.setItem(TOKEN_KEY, token)
-}
-
-export const removeToken = () => {
-  localStorage.removeItem(TOKEN_KEY)
-}
+export const removeLocalToken = () => {
+  Cookies.remove(TOKEN_KEY);
+};

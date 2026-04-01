@@ -1,7 +1,264 @@
-<script setup lang="ts"></script>
-
 <template>
-  <div class="car-card-page">car-card</div>
+  <div class="card-container">
+    <!-- 搜索区域 -->
+    <div class="search-container">
+      <span class="search-label">车牌号码：</span>
+      <el-input
+        clearable
+        placeholder="请输入内容"
+        class="search-main"
+        v-model="params.carNumber"
+      />
+      <span class="search-label">车主姓名：</span>
+      <el-input
+        clearable
+        placeholder="请输入内容"
+        class="search-main"
+        v-model="params.personName"
+      />
+      <span class="search-label">状态：</span>
+      <el-select v-model="params.cardStatus" style="width: 240px">
+        <el-option
+          :label="item.name"
+          v-for="item in cardStatusList"
+          :key="item.id"
+          :value="item.id === -1 ? '' : String(item.id)"
+        />
+      </el-select>
+      <el-button type="primary" class="search-btn" @click="onSearch()"
+        >查询</el-button
+      >
+    </div>
+    <!-- 新增删除操作区域 -->
+    <div class="create-container">
+      <el-button type="primary" @click="$router.push('/cardAdd')"
+        >添加月卡</el-button
+      >
+      <el-button @click="delCartList">批量删除</el-button>
+    </div>
+    <!-- 表格区域 -->
+    <div class="table">
+      <el-table
+        style="width: 100%"
+        :data="cardList"
+        @selection-change="handleSelectionChange"
+      >
+        <!-- 👇 新增这一行：添加多选勾选框 👇 -->
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column align="center" type="index" label="序号" width="100" />
+        <el-table-column align="center" label="车主名称" prop="personName" />
+        <el-table-column align="center" label="联系方式" prop="phoneNumber" />
+        <el-table-column align="center" label="车牌号码" prop="carNumber" />
+        <el-table-column align="center" label="车辆品牌" prop="carBrand" />
+        <el-table-column
+          align="center"
+          label="剩余有效天数"
+          prop="totalEffectiveDate"
+        />
+        <el-table-column
+          align="center"
+          label="月卡状态"
+          prop="cardStatus"
+          :formatter="formatStatus"
+        />
+        <el-table-column label="操作" align="center" fixed="right" width="300">
+          <template #default="scope">
+            <el-button size="small" type="text">续费</el-button>
+            <el-button size="small" type="text">查看</el-button>
+            <el-button
+              size="small"
+              type="text"
+              @click="$router.push(`/cardAdd?id=${scope.row.id}`)"
+              >编辑</el-button
+            >
+            <el-button
+              @click="deleteCard(scope.row.id)"
+              size="small"
+              type="text"
+              >删除</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+    <!-- 分页 -->
+    <div class="page-container">
+      <el-pagination
+        layout="total,sizes, prev, pager, next,jumper"
+        :total="total"
+        :page-sizes="[2, 5, 10, 15]"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
+  </div>
 </template>
 
-<style lang="scss" scoped></style>
+<script lang="ts" setup>
+import { deleteCardApi, getCardListApi } from '@/apis/card'
+import type { ApifoxModel, Card } from '@/types/card'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, onMounted } from 'vue'
+
+// 请求列表数据
+const params = ref<ApifoxModel>({
+  cardStatus: '', // 状态 '0':可用，'1':已过期
+  carNumber: '', // 车牌号
+  page: '1', // 页数
+  pageSize: '5', // 条数，默认5条
+  personName: '' // 车主姓名
+})
+// 返回月卡管理数据列表
+const cardList = ref<Card[]>([])
+// 总条数
+const total = ref(0)
+const cardStatusList = [
+  {
+    id: -1,
+    name: '全部'
+  },
+  {
+    id: 0,
+    name: '可用'
+  },
+  {
+    id: 1,
+    name: '已过期'
+  }
+]
+// 获取列表数据
+const getCardList = async () => {
+  const res = await getCardListApi(params.value)
+  if (res.code === 10000) {
+    cardList.value = res.data.rows
+    total.value = res.data.total
+  }
+}
+// 适配状态显示
+const formatStatus = (row: Card) => {
+  return row.cardStatus === '0' ? '可用' : '已过期'
+}
+// 监听每页条数变化
+const handleSizeChange = (val: number) => {
+  params.value.pageSize = val.toString()
+  params.value.page = '1' // 切换条数时回到第一页
+  getCardList()
+}
+// 监听当前页码变化
+const handleCurrentChange = (val: number) => {
+  params.value.page = val.toString()
+  getCardList()
+}
+// 搜索请求
+const onSearch = () => {
+  params.value.page = '1'
+  getCardList()
+}
+
+//删除月卡
+const deleteCard = async (id: string) => {
+  // 这里可以调用删除接口，传入id参数
+  ElMessageBox.confirm('确定要删除吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        const res = await deleteCardApi(id)
+        if (res.code === 10000) {
+          ElMessage.success('删除成功')
+          getCardList() // 刷新列表
+        } else {
+          ElMessage.error(res.message || '删除失败')
+        }
+      } catch (error) {
+        ElMessage.error('删除失败')
+      }
+    })
+    .catch(() => {
+      // 用户取消删除
+    })
+}
+// 监听多选框变化
+const selectedCards = ref<Card[]>([]) // 存储选中的行数据
+const handleSelectionChange = (val: Card[]) => {
+  // 这里可以获取到选中的行数据，进行批量删除等操作
+  selectedCards.value = val
+}
+// 批量删除
+const delCartList = () => {
+  if (selectedCards.value.length === 0) {
+    // 没有选中任何行
+    ElMessage.warning('请至少选择一条数据进行删除')
+    return
+  }
+  // 将选中的行数据的id拼接成字符串，传给删除接口
+  const ids = selectedCards.value.map(card => card.id).join(',')
+  ElMessageBox.confirm('确定要批量删除吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        const res = await deleteCardApi(ids)
+        if (res.code === 10000) {
+          ElMessage.success('批量删除成功')
+          getCardList() // 刷新列表
+        } else {
+          ElMessage.error(res.message || '批量删除失败')
+        }
+      } catch (error) {
+        ElMessage.error('批量删除失败')
+      }
+    })
+    .catch(() => {
+      // 用户取消删除
+    })
+}
+// 页面加载时获取列表
+onMounted(() => {
+  getCardList()
+})
+</script>
+
+<style lang="scss" scoped>
+.card-container {
+  padding: 20px;
+  background-color: #fff;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgb(237, 237, 237, 0.9);
+  padding-bottom: 20px;
+
+  .search-label {
+    margin-right: 8px;
+  }
+
+  .search-main {
+    width: 220px;
+    margin-right: 20px;
+  }
+
+  .search-btn {
+    margin-left: 20px;
+  }
+}
+
+.create-container {
+  margin: 10px 0px;
+}
+
+.page-container {
+  padding: 20px 0px;
+  text-align: right;
+}
+
+.form-container {
+  padding: 0px 80px;
+}
+</style>
