@@ -15,7 +15,7 @@ const getFirstRoutePerms = (perm: string[]) => {
   return [...new Set(newArr)]
 }
 
-// 处理后端返回的二级路由权限 数组
+//拿到二级路由
 
 const getSecondRoutePerms = (perm: string[]) => {
   // 通过冒号分割权限字符串，获取二级路由
