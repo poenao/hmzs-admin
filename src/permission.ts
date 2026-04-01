@@ -49,40 +49,56 @@ const getRoutes = (
       })
     }
   })
-  console.log(lastRoutes)
+  return lastRoutes
 }
 // 设置白名单
 const whiteList = ['/login', '/404'] // 不重定向白名单
 // 路由前置守卫
+// 2. 路由全局前置守卫
 router.beforeEach(async (to, from, next) => {
-  // 判断是否有 token
+  // 2.0 开启进度条
+  NProgress.start()
+  // 2.1 获取token
   const token = getLocalToken()
-  // 如果有 token
+  // 2.2 判断是否有token
   if (token) {
-    // 如果有token 就放行
-    NProgress.start() // 开始进度条
-    // 获取用户信息
-    const store = useUserStore()
-    await store.getProfile()
-    // 一级路由权限
-    const firstRoutePerms = getFirstRoutePerms(store.profile.permissions)
-    // 二级路由权限
-    const secondRoutePerms = getSecondRoutePerms(store.profile.permissions)
-
-    // 3. 根据权限标识 过滤筛选 动态路由表 最终得到有资格显示到左侧的所有路由表
-    getRoutes(firstRoutePerms, secondRoutePerms, asyncRoutes)
-
-    next()
-  } else {
-    // 没有 token判断是否在免登录的白名单中
-    if (whiteList.indexOf(to.path) !== -1) {
-      // 在免登录的白名单中，直接进入
-      NProgress.done() // 结束进度条
-      next()
+    // 2.2.1 判断去的页面是否是登录页, 如果是则拦截到首页
+    if (to.path === '/login') {
+      next('/')
     } else {
-      // 其他没有访问权限的页面将被重定向到登录页面。
-      NProgress.done() // 结束进度条
+      // 2.2.2 获取用户权限数据
+      const store = useUserStore()
+      if (!store.profile.id) {
+        await store.getProfile()
+        const res = store.profile || {}
+        console.log(res, '2222')
+        const menu = getFirstRoutePerms(res.permissions || [])
+        console.log(menu)
+        const sMenu = getSecondRoutePerms(res.permissions)
+        console.log(sMenu)
+        const perRoutes = getRoutes(menu, sMenu, asyncRoutes)
+        // 4. 把动态路由表加入到路由系统中（当浏览器中访问路由的路径 显示渲染出来对应的组件）
+        perRoutes.push({
+          path: '/:pathMatch(.*)*',
+          component: () => import('@/views/NotFound.vue'),
+          meta: { hidden: true },
+          children: []
+        })
+        perRoutes.forEach((route: any) => {
+          router.addRoute(route)
+        })
+
+        next({ ...to })
+      }
+
+      next()
+    }
+  } else {
+    // 2.2.2 判断是否在白名单
+    if (!whiteList.includes(to.path)) {
       next('/login')
+    } else {
+      next()
     }
   }
 })
