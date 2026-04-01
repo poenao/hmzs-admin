@@ -4,6 +4,8 @@ import { getLocalToken } from './utils/auth'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { useUserStore } from './stores/user'
+import { asyncRoutes } from './router/asyncRoutes'
+import type { RouteRecordRaw } from 'vue-router'
 
 // 处理后端返回的一级路由权限 数组
 const getFirstRoutePerms = (perm: string[]) => {
@@ -27,6 +29,28 @@ const getSecondRoutePerms = (perm: string[]) => {
   return [...new Set(newArr)]
 }
 
+// 过滤动态路由表
+const getRoutes = (
+  firstRoutePerms: string[],
+  secondRoutePerms: string[],
+  routes: any[]
+) => {
+  // 过滤一级路由
+  const firstRoutes = routes.filter((route: RouteRecordRaw) => {
+    return firstRoutePerms.includes(route.meta!.permission!)
+  })
+  console.log(firstRoutes)
+  // 过滤最终路由
+  const lastRoutes = firstRoutes.map((item: RouteRecordRaw) => {
+    return {
+      ...item,
+      children: item.children?.filter((child: RouteRecordRaw) => {
+        return secondRoutePerms.includes(child.meta!.permission!)
+      })
+    }
+  })
+  console.log(lastRoutes)
+}
 // 设置白名单
 const whiteList = ['/login', '/404'] // 不重定向白名单
 // 路由前置守卫
@@ -41,11 +65,12 @@ router.beforeEach(async (to, from, next) => {
     const store = useUserStore()
     await store.getProfile()
     // 一级路由权限
-    const res = getFirstRoutePerms(store.profile.permissions)
-    console.log(res)
+    const firstRoutePerms = getFirstRoutePerms(store.profile.permissions)
     // 二级路由权限
-    const secondRes = getSecondRoutePerms(store.profile.permissions)
-    console.log(secondRes)
+    const secondRoutePerms = getSecondRoutePerms(store.profile.permissions)
+
+    // 3. 根据权限标识 过滤筛选 动态路由表 最终得到有资格显示到左侧的所有路由表
+    getRoutes(firstRoutePerms, secondRoutePerms, asyncRoutes)
 
     next()
   } else {
