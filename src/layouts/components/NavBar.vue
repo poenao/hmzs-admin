@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import router from '@/router'
 import { useMenuStore } from '@/stores/menu'
-import { useUserStore } from '@/stores/user'
-import type { Profile } from '@/types' // Adjust the path to where Profile is defined
+import { useUserStore } from '@/stores/user' // Adjust the path to where Profile is defined
+import type { Profile } from '@/types/user'
 import { removeLocalToken } from '@/utils/auth'
 import { ElMessageBox } from 'element-plus'
 
