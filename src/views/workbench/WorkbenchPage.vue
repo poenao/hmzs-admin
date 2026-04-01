@@ -2,32 +2,69 @@
 import * as echarts from 'echarts'
 import { onMounted, ref } from 'vue'
 
-//柱状图实例
 const mainOneRef = ref()
+// 大屏显示的数据
+const workbenList = ref({})
 onMounted(() => {
-  // 基于准备好的dom，初始化echarts实例
   const myChart = echarts.init(mainOneRef.value)
-  // 绘制图表
   myChart.setOption({
     title: {
-      text: 'ECharts 入门示例'
+      text: '年度收入统计'
     },
-    tooltip: {},
+    tooltip: {
+      trigger: 'axis'
+    },
+    legend: {
+      data: ['物业费', '行车收入'],
+      right: '10%',
+      top: '0'
+    },
     xAxis: {
-      data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+      data: [
+        '12月',
+        '1月',
+        '2月',
+        '3月',
+        '4月',
+        '5月',
+        '6月',
+        '7月',
+        '8月',
+        '9月',
+        '10月',
+        '11月'
+      ]
     },
     yAxis: {},
     series: [
       {
-        name: '销量',
+        name: '物业费',
         type: 'bar',
-        data: [5, 20, 36, 10, 10, 20]
+        stack: 'total',
+        barWidth: '40%',
+        data: [
+          3700, 3700, 3700, 3700, 3700, 3700, 3700, 3700, 3700, 3700, 3700, 3700
+        ],
+        itemStyle: {
+          color: '#4D7CFE'
+        }
+      },
+      {
+        name: '行车收入',
+        type: 'bar',
+        stack: 'total',
+        data: [
+          2900, 1700, 1700, 1800, 2100, 2600, 1200, 1200, 1700, 1200, 800, 2400
+        ],
+        itemStyle: {
+          color: '#A5BFFF'
+        }
       }
     ]
   })
 })
 </script>
-
+// ...existing code...
 <template>
   <div class="workbench-page">
     <el-row :gutter="20">
