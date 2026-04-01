@@ -19,7 +19,7 @@ const roleForm = ref<RoleParams>({
   roleName: '', // 角色名称
   remark: '', // 角色描述
   perms: [],
-  roleId: 0 // 角色id，编辑时需要传递
+  roleId: undefined // 角色id，编辑时需要传递
 })
 // 角色信息表单校验规则
 const roleRules = ref({

@@ -24,24 +24,25 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   },
-  // 新增月卡管理
   {
     path: '/cardAdd',
     component: () => import('@/views/car/CarAdd.vue'),
-    meta: { hidden: true }
+    meta: { hidden: true } // 不显示在侧边栏
   },
-  // 添加企业管理
   {
     path: '/exterpriseAdd',
-    component: () => import('@/views/park/AddEnterprise.vue')
+    component: () => import('@/views/park/AddEnterprise.vue'),
+    meta: { hidden: true } // 不显示在侧边栏
   },
   {
     path: '/exterpriseDetail',
-    component: () => import('@/views/park/EnterpriseDetail.vue')
+    component: () => import('@/views/park/EnterpriseDetail.vue'),
+    meta: { hidden: true } // 不显示在侧边栏
   },
   {
     path: '/roleAdd',
-    component: () => import('@/views/system/AddRole.vue')
+    component: () => import('@/views/system/AddRole.vue'),
+    meta: { hidden: true } // 不显示在侧边栏
   }
 ]
 

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import router from '@/router'
+import { useMenuStore } from '@/stores/menu'
 import { useUserStore } from '@/stores/user'
+import type { Profile } from '@/types' // Adjust the path to where Profile is defined
 import { removeLocalToken } from '@/utils/auth'
 import { ElMessageBox } from 'element-plus'
 
@@ -17,7 +19,11 @@ const logout = () => {
       removeLocalToken()
       // 清空store中的token
       const stroe = useUserStore()
+      const menuStore = useMenuStore()
+      menuStore.clearMenuList()
       stroe.setToken('')
+      // 清空store中的用户信息
+      stroe.profile = {} as Profile
       // 跳转到登录页
       router.push('/login')
     })

@@ -6,6 +6,7 @@ import 'nprogress/nprogress.css'
 import { useUserStore } from './stores/user'
 import { asyncRoutes } from './router/asyncRoutes'
 import type { RouteRecordRaw } from 'vue-router'
+import { useMenuStore } from './stores/menu'
 
 // 处理后端返回的一级路由权限 数组
 const getFirstRoutePerms = (perm: string[]) => {
@@ -30,27 +31,40 @@ const getSecondRoutePerms = (perm: string[]) => {
 }
 
 // 过滤动态路由表
+// ...existing code...
+
+// 过滤动态路由表
 const getRoutes = (
   firstRoutePerms: string[],
   secondRoutePerms: string[],
   routes: any[]
 ) => {
+  // 如果是管理员
+  if (firstRoutePerms.includes('*')) {
+    return [...routes]
+  }
   // 过滤一级路由
   const firstRoutes = routes.filter((route: RouteRecordRaw) => {
-    return firstRoutePerms.includes(route.meta!.permission!)
+    return (
+      route.meta?.permission && firstRoutePerms.includes(route.meta.permission)
+    )
   })
-  console.log(firstRoutes)
   // 过滤最终路由
   const lastRoutes = firstRoutes.map((item: RouteRecordRaw) => {
     return {
       ...item,
       children: item.children?.filter((child: RouteRecordRaw) => {
-        return secondRoutePerms.includes(child.meta!.permission!)
+        return (
+          child.meta?.permission &&
+          secondRoutePerms.includes(child.meta.permission)
+        )
       })
     }
   })
   return lastRoutes
 }
+
+// ...existing code...
 // 设置白名单
 const whiteList = ['/login', '/404'] // 不重定向白名单
 // 路由前置守卫
@@ -87,10 +101,11 @@ router.beforeEach(async (to, from, next) => {
         perRoutes.forEach((route: any) => {
           router.addRoute(route)
         })
-
+        // 5. 存入Pinia渲染左侧菜单
+        const menuStore = useMenuStore()
+        menuStore.setMenuList(perRoutes as any)
         next({ ...to })
       }
-
       next()
     }
   } else {
